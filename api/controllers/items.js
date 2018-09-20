@@ -22,10 +22,10 @@ module.exports = {
 
             if(typeof name_like == "undefined")
             {
-                items =  await Items.find(category != "" ? {item_type: category}: {}).populate('similar_items', 'name', Items).sort({"name": 1});
+                items =  await Items.find(typeof category != "undefined" ? {item_type: category}: {}).populate('similar_items', 'name', Items).sort({"name": 1});
             }
             else{
-                items = await Items.find(category != "" ? {item_type: category, name: {$regex: new RegExp(name_like, 'i')}}: {name: {$regex: new RegExp(name_like, 'i')}})
+                items = await Items.find(typeof category != "undefined" ? {item_type: category, name: {$regex: new RegExp(name_like, 'i')}}: {name: {$regex: new RegExp(name_like, 'i')}})
                                    .populate('similar_items', 'name', Items)
                                    .sort({"name": 1});
             }
