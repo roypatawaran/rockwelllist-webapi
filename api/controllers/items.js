@@ -50,8 +50,11 @@ module.exports = {
 
                 res.status(200).json(item_summary);
             }
-            else
-                res.status(200).json(items);
+            else{
+                var sorted_items = top == true ? pagination.sortItemsWithFeatured(items) : items;
+                res.status(200).json(sorted_items);
+            }
+                
             
         } catch(err) {
             next(err);
