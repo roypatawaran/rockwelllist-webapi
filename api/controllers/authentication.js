@@ -182,4 +182,9 @@ methods.addUser = function(username, firstName, lastName, birthDate, sex, mobile
     });
 };
 
+methods.getUser = function(_email)
+{
+    return user.find({username: _email});
+};
+
 exports.data = methods;

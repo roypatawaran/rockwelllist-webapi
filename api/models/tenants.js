@@ -11,11 +11,12 @@ const tenantsSchema = new mongoose.Schema({
     },
     writeup: String,
     description: String,
+    featured: Boolean,
     location: String,
     phone_num: Array,
     rockwellist_picks: [{
         name: String,
-        imageUrl:{
+        image_url:{
             type: String,
             default: null
         }
