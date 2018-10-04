@@ -238,7 +238,7 @@ router.get("/signup", function(req,res){
 router.put("/user/update", function(req,res){
     console.log(req.headers.authorization)
     var accessCode = req.sanitize(req.headers.authorization);
-    var token = jwt.verify(accessCode.replace("Bearer ", ""));
+    var token = jwt.verify(accessCode.replace("Bearer ", ""), "secret");
 
     // console.log(typeof(accessCode));
     if (typeof(token) === "undefined"){
@@ -247,51 +247,56 @@ router.put("/user/update", function(req,res){
     }
     else{
         accessCode = accessCode.replace("Bearer ", "");
-        
-        // req.query.username = req.sanitize(req.query.username);
-        var firstName = req.sanitize(req.body.first_name);
-        var lastName = req.sanitize(req.body.last_name);
-        var birthDate = req.sanitize(req.body.birthdate);
-        // var birthDate = new Date(birthDateS);
-        var sex = req.sanitize(req.body.gender);
-        var mobileNumber = req.sanitize(req.body.mobile_number);
-        if((firstName==null) || (lastName==null) || (birthDate==null) || (sex==null) || (mobileNumber==null)){
-            res.status(403);
-            return res.send("Incomplete user details");
-        }
-        else{
-
-            var objectTemp = {
-                firstName: firstName,
-                lastName: lastName,
-                birthDate: birthDate,
-                sex: sex,
-                mobileNumber: mobileNumber
+        authController.data.getUserDetails({_id: token.data._id}, function(users){
+            if(users.length > 0)
+            {
+                var firstName = compareUserData(req.sanitize(req.body.first_name), users[0].firstName);
+                var lastName = compareUserData(req.sanitize(req.body.last_name), users[0].lastName);
+                var birthDate = compareUserData(req.sanitize(req.body.birthdate), users[0].birthDate);
+                // var birthDate = new Date(birthDateS);
+                var sex = compareUserData(req.sanitize(req.body.sex), users[0].sex);
+                var mobileNumber = compareUserData(req.sanitize(req.body.mobile_number), users[0].mobileNumber);
+                
+                var objectTemp = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    birthDate: birthDate,
+                    sex: sex,
+                    mobileNumber: mobileNumber
+                }
+                authController.data.checkAPIKey(req.headers['x-api-key'], function(apiValid){
+                    if(apiValid){
+                       authController.data.editUser({_id: token.data._id}, objectTemp, function(resp){
+                            res.status(200);
+                    
+                            console.log(typeof(birthDate))
+                            var tempObject = {
+                                username: req.body.username,
+                                first_name: firstName,
+                                last_name: lastName,
+                                gender: sex,
+                                mobile_number: mobileNumber,
+                                birthdate: birthDate
+                            }
+                            console.log(resp);
+                            res.send(tempObject);
+                        })
+                    }
+                    else {
+                        res.status(403);
+                        return res.send("You are not authorized to access");
+                    }
+                })
             }
-            authController.data.checkAPIKey(req.headers['x-api-key'], function(apiValid){
-                if(apiValid){
-                   authController.data.editUser({_id: token._id}, objectTemp, function(resp){
-                        res.status(200);
-
-                        console.log(typeof(birthDate))
-                        var tempObject = {
-                            username: req.body.username,
-                            first_name: firstName,
-                            last_name: lastName,
-                            gender: sex,
-                            mobile_number: mobileNumber,
-                            birthdate: birthDate
-                        }
-                        console.log(resp);
-                        res.send(tempObject);
-                    })
-                }
-                else {
-                    res.status(403);
-                    return res.send("You are not authorized to access");
-                }
-            })
-        }
+            else
+            {
+                res.status(403);
+                res.send("User not found");
+            }
+    
+        });
+        // req.query.username = req.sanitize(req.query.username);
+        
     }
 
 
@@ -535,6 +540,17 @@ router.post("/removeUser", function(req,res){
     })
 })
 
+compareUserData = function(request, user){
+    if(typeof request !=  "undefined")
+    {
+        if(request != user)
+            return request;
+        else
+            return user;
+    }
+    else
+        return user;
+}
 
 
 
