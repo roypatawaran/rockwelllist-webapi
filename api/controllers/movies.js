@@ -80,8 +80,9 @@ module.exports = {
             }
             else
             {
+                var sorted_movies = top == true ? pagination.sortItemsWithFeatured(movies) : movies;
                 var _movies = [];
-                for(var a = 0; a < movies.length; a++)
+                for(var a = 0; a < sorted_movies.length; a++)
                 {
                     var _movieSummary = new Cinemas_Summary({
                         "item_id": movies[a].item_id,

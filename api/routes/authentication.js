@@ -167,14 +167,22 @@ router.post("/auth/email/forgot", function(req,res){
                         }
                         else{
                             authController.data.generateEmail("passwordResetEmail", req.body.username, resetToken);
-                            return res.send({});
+                            return res.send({
+                                "success": {
+                                    "message": "Password reset successful"
+                                }
+                            });
                         }
                     })
                 }
             })
         } else{
             res.status(403);
-            return res.send("You are not authorized to perform this action");
+            return res.send({
+                "error": {
+                    "message": "Password reset failed"
+                }
+            });
         }
     })
 });
@@ -230,13 +238,16 @@ router.get("/signup", function(req,res){
 router.put("/user/update", function(req,res){
     console.log(req.headers.authorization)
     var accessCode = req.sanitize(req.headers.authorization);
+    var token = jwt.verify(accessCode.replace("Bearer ", ""));
+
     // console.log(typeof(accessCode));
-    if (typeof(accessCode) === "undefined"){
+    if (typeof(token) === "undefined"){
         res.status(401);
         res.send("Unauthorized");
     }
     else{
         accessCode = accessCode.replace("Bearer ", "");
+        
         // req.query.username = req.sanitize(req.query.username);
         var firstName = req.sanitize(req.body.first_name);
         var lastName = req.sanitize(req.body.last_name);
@@ -259,7 +270,7 @@ router.put("/user/update", function(req,res){
             }
             authController.data.checkAPIKey(req.headers['x-api-key'], function(apiValid){
                 if(apiValid){
-                   authController.data.editUser({accessCode: accessCode}, objectTemp, function(resp){
+                   authController.data.editUser({_id: token._id}, objectTemp, function(resp){
                         res.status(200);
 
                         console.log(typeof(birthDate))
