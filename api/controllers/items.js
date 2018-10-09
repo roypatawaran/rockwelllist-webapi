@@ -44,14 +44,14 @@ module.exports = {
 
                 for(var x = 0; x < itemSummary.length; x++)
                 {
-                    var _data = new item_summary_model({
-                        "item_id": itemSummary[x].item_id,
+                    var _data = {
+                        "item_id": itemSummary[x]._id,
                         "item_type": itemSummary[x].item_type,
                         "name":itemSummary[x].name,
                         "writeup":itemSummary[x].writeup,
                         "image_url": itemSummary[x].thumbnail_url,
                         "location": itemSummary[x].location
-                    });
+                    };
                     data.push(_data);
                 }
                 
@@ -70,14 +70,25 @@ module.exports = {
                 var data = [];
                 for(var x = 0; x < sorted_items.length; x++)
                 {
-                    var _data = new item_summary_model({
-                        "item_id": sorted_items[x].item_id,
+                    // var _data = new item_summary_model({
+                    //     "item_id": sorted_items[x].item_id,
+                    //     "item_type": sorted_items[x].item_type,
+                    //     "name":sorted_items[x].name,
+                    //     "writeup":sorted_items[x].writeup,
+                    //     "image_url": typeof category != "undefined" ? sorted_items[x].thumbnail_url : sorted_items[x].image_url,
+                    //     "location": sorted_items[x].location
+                    // });
+
+                    var _data = {
+                        "item_id": sorted_items[x]._id,
                         "item_type": sorted_items[x].item_type,
                         "name":sorted_items[x].name,
                         "writeup":sorted_items[x].writeup,
                         "image_url": typeof category != "undefined" ? sorted_items[x].thumbnail_url : sorted_items[x].image_url,
                         "location": sorted_items[x].location
-                    });
+                    };
+
+
                     data.push(_data);
                 }
                 var item_summary = {

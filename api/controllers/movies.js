@@ -58,14 +58,14 @@ module.exports = {
                 
                 for(var a = 0; a < _movies[movie_index].length; a++)
                 {
-                    var _movieSummary = new Cinemas_Summary({
-                        "item_id": _data[a].item_id,
+                    var _movieSummary = {
+                        "item_id": _data[a]._id,
                         "item_type": _data[a].item_type,
                         "name":_data[a].name,
                         "writeup":_data[a].writeup,
                         "image_url": _data[a].thumbnail_url,
                         "booking_url": _data[a].booking_url
-                    });
+                    };
                     data.push(_movieSummary);
                 }
 
@@ -84,14 +84,14 @@ module.exports = {
                 var _movies = [];
                 for(var a = 0; a < sorted_movies.length; a++)
                 {
-                    var _movieSummary = new Cinemas_Summary({
-                        "item_id": movies[a].item_id,
+                    var _movieSummary = {
+                        "item_id": movies[a]._id,
                         "item_type": movies[a].item_type,
                         "name":movies[a].name,
                         "writeup":movies[a].writeup,
                         "image_url": movies[a].image_url,
                         "booking_url": movies[a].booking_url
-                    });
+                    };
                     _movies.push(_movieSummary);
                 }
 
