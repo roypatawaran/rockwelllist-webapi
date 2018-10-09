@@ -59,7 +59,7 @@ module.exports = {
                 for(var a = 0; a < _movies[movie_index].length; a++)
                 {
                     var _movieSummary = {
-                        "item_id": _data[a]._id,
+                        "_id": _data[a]._id,
                         "item_type": _data[a].item_type,
                         "name":_data[a].name,
                         "writeup":_data[a].writeup,
@@ -85,7 +85,7 @@ module.exports = {
                 for(var a = 0; a < sorted_movies.length; a++)
                 {
                     var _movieSummary = {
-                        "item_id": movies[a]._id,
+                        "_id": movies[a]._id,
                         "item_type": movies[a].item_type,
                         "name":movies[a].name,
                         "writeup":movies[a].writeup,

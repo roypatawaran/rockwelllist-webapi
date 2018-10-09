@@ -45,7 +45,7 @@ module.exports = {
                 for(var x = 0; x < itemSummary.length; x++)
                 {
                     var _data = {
-                        "item_id": itemSummary[x]._id,
+                        "_id": itemSummary[x]._id,
                         "item_type": itemSummary[x].item_type,
                         "name":itemSummary[x].name,
                         "writeup":itemSummary[x].writeup,
@@ -80,7 +80,7 @@ module.exports = {
                     // });
 
                     var _data = {
-                        "item_id": sorted_items[x]._id,
+                        "_id": sorted_items[x]._id,
                         "item_type": sorted_items[x].item_type,
                         "name":sorted_items[x].name,
                         "writeup":sorted_items[x].writeup,
@@ -108,7 +108,12 @@ module.exports = {
         const { itemId } = req.params;
 
         try {
-            const items = await Items.findById(itemId).populate('similar_items', 'name', Items);
+            var items = await Items.findById(itemId).populate('similar_items', 'item_type name writeup thumbnail_url location', Items);
+            //const items = await Items.findById(itemId).populate('similar_items');
+            str = JSON.stringify(items);
+            str = str.replace(/\"thumbnail_url\":/g, "\"image_url\":");
+            items = JSON.parse(str);
+
             res.status(200).json(items);
         } catch(err) {
             next(err);
@@ -142,6 +147,7 @@ module.exports = {
     getByFeatured: async (req, res, next) => {
         try {
             const items = await Items.find({featured:true}).populate('similar_items', 'name', Items);
+            //const items = await Items.find({featured:true}).populate('similar_items', item_summary_model);
             res.status(200).json(items);
         } catch(err) {
             next(err);
