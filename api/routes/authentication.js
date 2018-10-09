@@ -117,9 +117,9 @@ router.get('/user/me', function(req,res){
             "username": users[0].username,
             "first_name": users[0].firstName,
             "last_name": users[0].lastName,
-            "gender": users[0].sex,
+            "sex": users[0].sex,
             "mobile_number": users[0].mobileNumber,
-            "birthdate": users[0].birthDate
+            "birthdate":  new Date(users[0].birthDate).getTime()
         }
         // var date = moment(birthDay).format('YYYY-MM-DD');
         // console.log(date)
@@ -257,6 +257,12 @@ router.put("/user/update", function(req,res){
                 var sex = compareUserData(req.sanitize(req.body.sex), users[0].sex);
                 var mobileNumber = compareUserData(req.sanitize(req.body.mobile_number), users[0].mobileNumber);
                 
+                if(sex != "m" && sex != "f")
+                {
+                    res.status(400);
+                    res.send("Invalid input for Sex");
+                }
+
                 var objectTemp = {
                     firstName: firstName,
                     lastName: lastName,
@@ -274,9 +280,9 @@ router.put("/user/update", function(req,res){
                                 username: req.body.username,
                                 first_name: firstName,
                                 last_name: lastName,
-                                gender: sex,
+                                sex: sex,
                                 mobile_number: mobileNumber,
-                                birthdate: birthDate
+                                birthdate: new Date(birthDate).getTime()
                             }
                             console.log(resp);
                             res.send(tempObject);
@@ -325,6 +331,13 @@ router.post("/auth/email/registration", function(req,res){
     req.headers['x-api-key'] = req.sanitize(req.headers['x-api-key']);
     req.body.mobileNumber = req.sanitize(req.body.mobileNumber);
     req.headers['x-api-key'] = req.sanitize(req.headers['x-api-key']);
+    
+    if(req.body.sex != "m" && req.body.sex != "f")
+    { 
+        res.status(400);
+        res.send("Invalid input for Sex");
+    }
+
 
     authController.data.checkAPIKey(req.headers['x-api-key'], function(apiValid){
         if(apiValid){
@@ -405,7 +418,7 @@ router.post("/auth/email/login", passport.authenticate("local"), function(req, r
                                 "user" : {
                                     "first_name": req.user.firstName,
                                     "last_name": req.user.lastName,
-                                    "birthdate": req.user.birthDate,
+                                    "birthdate":  new Date(req.user.birthDate).getTime(),
                                     "sex": req.user.sex,
                                     "mobile_number": req.user.mobileNumber
                                 },
@@ -415,7 +428,7 @@ router.post("/auth/email/login", passport.authenticate("local"), function(req, r
 
                         var token = jwt.sign({
                             data: relevantData
-                        }, _jwt.JWT_KEY, {expiresIn: "1h"});
+                        }, _jwt.JWT_KEY);
 
                         relevantData.access_token = token;
                         

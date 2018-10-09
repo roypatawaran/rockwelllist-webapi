@@ -1,5 +1,6 @@
 const Items = require('../models/tenants');
 const pagination = require('../utils/pagination');
+var item_summary_model = require('../models/items_summary');
 var mongoose = require('mongoose');
 
 module.exports = {
@@ -39,20 +40,52 @@ module.exports = {
                 var item_index = pagination.getItemChunkIndex(_items, start_id);
                 var next_id = pagination.getNextId(_items, item_index, items.length);
                 var itemSummary = limit != 0 ? _items[item_index] : _items;
+                var data = [];
+
+                for(var x = 0; x < itemSummary.length; x++)
+                {
+                    var _data = new item_summary_model({
+                        "item_id": itemSummary[x].item_id,
+                        "item_type": itemSummary[x].item_type,
+                        "name":itemSummary[x].name,
+                        "writeup":itemSummary[x].writeup,
+                        "image_url": itemSummary[x].thumbnail_url,
+                        "location": itemSummary[x].location
+                    });
+                    data.push(_data);
+                }
                 
 
                 var item_summary = {
                     "pagination": {
                         "next": next_id
                     },
-                    "data": itemSummary
+                    "data": data
                 };
 
                 res.status(200).json(item_summary);
             }
             else{
                 var sorted_items = top == true ? pagination.sortItemsWithFeatured(items) : items;
-                res.status(200).json(sorted_items);
+                var data = [];
+                for(var x = 0; x < sorted_items.length; x++)
+                {
+                    var _data = new item_summary_model({
+                        "item_id": sorted_items[x].item_id,
+                        "item_type": sorted_items[x].item_type,
+                        "name":sorted_items[x].name,
+                        "writeup":sorted_items[x].writeup,
+                        "image_url": sorted_items[x].image_url,
+                        "location": sorted_items[x].location
+                    });
+                    data.push(_data);
+                }
+                var item_summary = {
+                    "pagination": {
+                    },
+                    "data": data
+                };
+                res.status(200).json(item_summary);
             }
                 
             

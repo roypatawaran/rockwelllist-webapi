@@ -63,7 +63,7 @@ module.exports = {
                         "item_type": _data[a].item_type,
                         "name":_data[a].name,
                         "writeup":_data[a].writeup,
-                        "image_url": _data[a].image_url,
+                        "image_url": _data[a].thumbnail_url,
                         "booking_url": _data[a].booking_url
                     });
                     data.push(_movieSummary);
@@ -94,7 +94,12 @@ module.exports = {
                     });
                     _movies.push(_movieSummary);
                 }
-                res.status(200).json(_movies);
+
+                var movie_summary = {
+                    "pagination": {},
+                    "data": _movies
+                };
+                res.status(200).json(movie_summary);
             }
         } catch(err) {
             next(err);

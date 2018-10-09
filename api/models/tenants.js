@@ -24,7 +24,8 @@ const tenantsSchema = new mongoose.Schema({
     similar_items: [{
         type: Schema.Types.ObjectId,
         ref: 'tenants'
-    }]
+    }],
+    thumbnail_url: String
 });
 
 tenantsSchema.index({name: 'text'});

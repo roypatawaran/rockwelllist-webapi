@@ -30,7 +30,8 @@ const cinemasSchema = new mongoose.Schema({
         theater_name: String,
         opening_date: Date
     }],
-    booking_url: String
+    booking_url: String,
+    thumbnail_url: String
 });
 
 module.exports = mongoose.model('Cinemas', cinemasSchema);
