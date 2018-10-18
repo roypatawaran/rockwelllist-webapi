@@ -13,7 +13,7 @@ const tenantsSchema = new mongoose.Schema({
     description: String,
     featured: Boolean,
     location: String,
-    phone_num: Array,
+    phone_nums: Array,
     rockwellist_picks: [{
         name: String,
         image_url:{
