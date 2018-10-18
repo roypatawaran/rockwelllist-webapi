@@ -8,7 +8,7 @@ module.exports = {
                 var ifNotNowShowing = false;
                 for (var x = 0; x < obj.availability.length; x++) {
                     if (!moment(dateNow).isAfter(obj.availability[x].opening_date)) {
-                        if (theater_name == obj.availability[x].theater_name)
+                        if (theater_name.toLowerCase() == obj.availability[x].theater_name.toLowerCase())
                             ifNotNowShowing = true;
                     }
                 }
@@ -23,7 +23,7 @@ module.exports = {
                 var ifNotComingSoon = false;
                 for (var x = 0; x < obj.availability.length; x++) {
                     if (!moment(obj.availability[x].opening_date).isAfter(dateNow)) {
-                        if (theater_name == obj.availability[x].theater_name)
+                        if (theater_name.toLowerCase() == obj.availability[x].theater_name.toLowerCase())
                             ifNotComingSoon = true;
                     }
                 }
@@ -70,7 +70,7 @@ module.exports = {
             var obj = movies[i];
             var isTheaterName = false;
             for (var x = 0; x < obj.availability.length; x++) {
-                if (obj.availability[x].theater_name == theater_name) {
+                if (obj.availability[x].theater_name.toLowerCase() == theater_name.toLowerCase()) {
                     isTheaterName = true;
                 }
             }
