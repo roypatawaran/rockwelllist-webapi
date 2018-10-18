@@ -108,7 +108,13 @@ module.exports = {
                 res.status(200).json(movie_summary);
             }
         } catch(err) {
-            next(err);
+            console.log(error);
+            var movie_summary = {
+                "pagination": {},
+                "data": []
+            };
+
+            res.status(200).json(movie_summary);
         }
     },
     getById: async (req, res, next) => {

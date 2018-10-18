@@ -84,7 +84,7 @@ module.exports = {
                         "item_type": sorted_items[x].item_type,
                         "name":sorted_items[x].name,
                         "writeup":sorted_items[x].writeup,
-                        "image_url": sorted_item[x].thumbnail_url,
+                        "image_url": sorted_items[x].thumbnail_url,
                         "location": sorted_items[x].location
                     };
 
@@ -100,7 +100,7 @@ module.exports = {
             }   
             
         } catch(err) {
-            //next(err);
+            console.log(error);
             var item_summary = {
                 "pagination": {},
                 "data": []
