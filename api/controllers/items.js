@@ -15,7 +15,7 @@ module.exports = {
     },
     getAll: async (req, res, next) => {
         try {
-            var category = req.query.category;
+            var category = req.query.item_type;
             var limit = parseInt(req.query.limit);
             var name_like = req.query.name_like;
             var start_id = req.query.start_id;
@@ -97,26 +97,58 @@ module.exports = {
                     "data": data
                 };
                 res.status(200).json(item_summary);
-            }
-                
+            }   
             
         } catch(err) {
-            next(err);
+            //next(err);
+            var item_summary = {
+                "pagination": {},
+                "data": []
+            };
+
+            res.status(200).json(item_summary);
         }
     },
     getById: async (req, res, next) => {
         const { itemId } = req.params;
 
         try {
-            var items = await Items.findById(itemId).populate('similar_items', 'item_type name writeup thumbnail_url location', Items);
-            //const items = await Items.findById(itemId).populate('similar_items');
-            str = JSON.stringify(items);
-            str = str.replace(/\"thumbnail_url\":/g, "\"image_url\":");
-            items = JSON.parse(str);
+                //to confirm image_url - thumbnail_irl
+                var items = await Items.findById(itemId).populate('similar_items', 'item_type name writeup thumbnail_url image_url location', Items);
+                console.log(items);
+                //const items = await Items.findById(itemId).populate('similar_items');
+                // str = JSON.stringify(items);
+                // str = str.replace(/\"thumbnail_url\":/g, "\"image_url\":");
+                // items = JSON.parse(str);
+                items.thumbnail_url = undefined;
 
-            res.status(200).json(items);
+                for(var i = 0; i < items.similar_items.length; i++)
+                {
+                    items.similar_items[i].image_url = items.similar_items[i].thumbnail_url;
+                    items.similar_items[i].thumbnail_url = undefined;
+                }
+
+                if(items != null) {
+                    res.status(200).json(items);
+                } else {
+                    var item_summary = {
+                        "pagination": {},
+                        "data": []
+                    };
+        
+                    res.status(200).json(item_summary);
+                }
+                
+             
+            
         } catch(err) {
-            next(err);
+            //next(err);
+            var item_summary = {
+                "pagination": {},
+                "data": []
+            };
+
+            res.status(200).json(item_summary);
         }
     },
     updateById: async(req, res, next) => {

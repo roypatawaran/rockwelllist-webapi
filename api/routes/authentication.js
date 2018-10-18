@@ -335,7 +335,7 @@ router.post("/auth/email/registration", function(req,res){
     if(req.body.sex != "m" && req.body.sex != "f")
     { 
         res.status(400);
-        res.send("Invalid input for Sex");
+        res.json({message: "Invalid input for Sex"});
     }
 
 

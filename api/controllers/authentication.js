@@ -21,8 +21,8 @@ methods.generateEmail = function(type, email, hash){
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                user: "vincent.maceda@devboxph.com", // generated ethereal user
-                pass: "Inazuma11" // generated ethereal password
+                user: process.env.Email, // generated ethereal user
+                pass: process.env.Password // generated ethereal password
             }
         });
         var subj = "";

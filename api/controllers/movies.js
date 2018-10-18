@@ -23,8 +23,14 @@ module.exports = {
             var start_id = req.query.start_id;
             var dateNow = new Date();
             var movies = [];
-
-            movies =  await Movies.find({}).sort({"name": 1});
+            var params = {
+                            name: {$exists:true}, 
+                            item_type: {$exists:true},
+                            writeup: {$exists:true},
+                            image_url: {$exists:true},
+                            booking_url: {$exists:true}
+                        };
+            movies =  await Movies.find(params).sort({"name": 1});
 
             if(typeof availability != "undefined" && typeof theater_name != "undefined")
             {
@@ -109,8 +115,34 @@ module.exports = {
         const { movieId } = req.params;
 
         try {
-            const movies = await Movies.findById(movieId);
-            res.status(200).json(movies);
+            var movies = await Movies.findById(movieId, { "__v" : 0, "availability._id" : 0 });
+            var _availability = [];
+            for(var x = 0; x < movies.availability.length; x++)
+            {
+                var temp = {
+                    "opening_date": movies.availability[x].opening_date.getTime(),
+                    "theater_name": movies.availability[x].theater_name
+                }
+                _availability.push(temp);
+            }
+
+            var _data = {
+                "_id": movies._id,
+                "name": movies.name,
+                "booking_url": movies.booking_url,
+                "trailer_url": movies.trailer_url,
+                "item_type": movies.item_type,
+                "render_type": movies.render_type,
+                "availability": _availability,
+                "mtrcb_rating": movies.mtrcb_rating,
+                "genre": movies.genre,
+                "description": movies.description,
+                "writeup": movies.writeup,
+                "image_url": movies.image_url
+            };
+        
+
+            res.status(200).json(_data);
         } catch(err) {
             next(err);
         }
