@@ -95,7 +95,7 @@ module.exports = {
                         "item_type": movies[a].item_type,
                         "name":movies[a].name,
                         "writeup":movies[a].writeup,
-                        "image_url": movies[a].image_url,
+                        "image_url": movies[a].thumbnail_url,
                         "booking_url": movies[a].booking_url
                     };
                     _movies.push(_movieSummary);

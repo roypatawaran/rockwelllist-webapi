@@ -84,7 +84,7 @@ module.exports = {
                         "item_type": sorted_items[x].item_type,
                         "name":sorted_items[x].name,
                         "writeup":sorted_items[x].writeup,
-                        "image_url": typeof category != "undefined" ? sorted_items[x].thumbnail_url : sorted_items[x].image_url,
+                        "image_url": sorted_item[x].thumbnail_url,
                         "location": sorted_items[x].location
                     };
 
