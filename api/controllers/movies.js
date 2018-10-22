@@ -150,7 +150,13 @@ module.exports = {
 
             res.status(200).json(_data);
         } catch(err) {
-            next(err);
+            console.log(err);
+            var obj = {
+                "pagination": {},
+                "data": []
+            };
+
+            res.status(200).json(obj);
         }
     },
     updateById: async(req, res, next) => {

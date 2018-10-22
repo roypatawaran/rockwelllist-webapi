@@ -28,7 +28,8 @@ const cinemasSchema = new mongoose.Schema({
     },
     availability: [{
         theater_name: String,
-        opening_date: Date
+        opening_date: Date,
+        end_date: Date
     }],
     booking_url: String,
     thumbnail_url: String

@@ -1,4 +1,6 @@
-var moment = require('moment');
+var Moment = require('moment');
+var MomentRange = require('moment-range');
+var moment = MomentRange.extendMoment(Moment);
 
 module.exports = {
     getMoviesWithAvailabiltyAndTheaterName: function(availability, movies, dateNow, theater_name) {
@@ -40,9 +42,11 @@ module.exports = {
                 var obj = movies[i];
                 var ifNotNowShowing = false;
                 for (var x = 0; x < obj.availability.length; x++) {
-                    if (!moment(dateNow).isAfter(obj.availability[x].opening_date)) {
+                    if (!(dateNow > obj.availability[x].opening_date && dateNow < obj.availability[x].end_date)) {
                         ifNotNowShowing = true;
                     }
+                    else
+                        ifNotNowShowing = false;
                 }
                 if (ifNotNowShowing) {
                     movies.splice(i, 1);
@@ -54,12 +58,32 @@ module.exports = {
                 var obj = movies[i];
                 var ifNotComingSoon = false;
                 for (var x = 0; x < obj.availability.length; x++) {
-                    if (!moment(obj.availability[x].opening_date).isAfter(dateNow)) {
+                    if (!(obj.availability[x].opening_date > dateNow)) {
                         ifNotComingSoon = true;
                     }
                 }
                 if (ifNotComingSoon) {
                     movies.splice(i, 1);
+                }
+            }
+        }
+        else if(availability.toLowerCase() == "closed")
+        {
+            for(var i = movies.length - 1; i >= 0;i--)
+            {
+                var obj = movies[i];
+                var isNotClosed = false;
+                for(var x = 0; x < obj.availability.length; x++)
+                {
+                    if(!(dateNow > obj.availability[x].end_date))
+                    {
+                        isNotClosed = true;
+                    }
+                    else
+                        isNotClosed = false;
+                }
+                if(isNotClosed){
+                    movies.splice(i,1);
                 }
             }
         }
