@@ -3,6 +3,7 @@ var Claims = require('../models/wallet_claims');
 var Wallet = require('../models/wallet');
 var Payment = require('../models/wallet_payment');
 var Tenant = require('../models/tenants');
+var PaymentToken = require('../models/payment_token');
 var User = require('../models/user');
 var pagination = require('../utils/pagination');
 var mongoose = require('mongoose');
@@ -12,7 +13,7 @@ var crypto = require("crypto");
 module.exports = {
     redeem: async (req, res, next) => {
         try {
-            var egc_id = req.params.egc_id;
+            var egc_id = req.body.egc_id;
             var egc = await Egc.findById(egc_id);
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.find({user: user._id});
@@ -202,29 +203,28 @@ module.exports = {
             var dateToday = new Date();
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.find({user: user._id});
-            var dateToday = new Date().getTime();
             var hash = crypto.createHash('md5').update(user._id + wallet._id).digest('hex');
             if(!wallet){
                 res.send({message: "Wallet not found"});
             }
             var token = jwt.sign({
-                wallet: crypto.createHash('md5').update(wallet[0]._id).digest('hex'),
-                user: crypto.createHash('md5').update(user._id).digest('hex')
+                wallet: crypto.createHash('md5').update(wallet[0]._id.toString()).digest('hex'),
+                user: crypto.createHash('md5').update(user._id.toString()).digest('hex')
             }, hash);
 
-            var paymentToken = new Coupon({
+            var paymentToken = new PaymentToken({
                 qr_code: token,
-                created_date: new Date(),
-                expiration_date: dateToday.setMonth(dateToday.getMonth() + 2)
+                date_generated: new Date().getTime(),
+                date_expires: dateToday.setMonth(dateToday.getMonth() + 2)
             });
 
-            var _paymentToken = await paymentToken.save();
+            paymentToken = await paymentToken.save();
 
             var resp = {
-                _id: _paymentToken._id,
-                date_generated: _paymentToken.created_date.getTime(),
-                expiration: _paymentToken.expiration_date.getTime(),
-                token: _paymentToken.qr_code
+                _id: paymentToken._id,
+                date_generated: paymentToken.date_generated.getTime(),
+                expiration: paymentToken.date_expires.getTime(),
+                token: paymentToken.qr_code
             }
 
             res.send(resp);

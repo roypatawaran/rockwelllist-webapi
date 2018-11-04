@@ -8,12 +8,12 @@ module.exports = {
         try {
             var dateToday = new Date(Date.now());
             var egc = new Egc({
-                amount: 1500,
+                amount: 500,
                 claimed: false,
                 created_date: dateToday,
                 expiration_date: dateToday.setDate(dateToday.getMonth() + 2),
                 name: "Rockwellist E-GC",
-                tracking_id: "Code Sequence 1950-4772"
+                tracking_id: "Code Sequence 1950-4775"
             }) 
             const _egc = await egc.save();
             res.status(201).json(_egc);

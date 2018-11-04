@@ -5,10 +5,9 @@ var checkApi = require('../middleware/check-api');
 
 var router = express.Router();
 
-router.post("/", [checkAuth, checkApi.checkAPIKey], walletController.createWallet)
-      .get("/", [checkAuth, checkApi.checkAPIKey], walletController.getWallet);
+router.get("/", [checkAuth, checkApi.checkAPIKey], walletController.getWallet);
 router.get("/transactions", [checkAuth, checkApi.checkAPIKey], walletController.getTransactionHistory);
-router.post("/:egc_id", [checkAuth, checkApi.checkAPIKey], walletController.redeem);
+router.post("/", [checkAuth, checkApi.checkAPIKey], walletController.redeem);
 router.post("/payment", [checkAuth, checkApi.checkAPIKey], walletController.payment);
 router.post("/payment_token", [checkAuth, checkApi.checkAPIKey], walletController.paymentToken);
 module.exports = router;
