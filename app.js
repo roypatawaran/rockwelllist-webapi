@@ -19,6 +19,9 @@ var itemsRoutes = require('./api/routes/items');
 var authRoutes = require("./api/routes/authentication");
 var moviesRoutes = require('./api/routes/movies');
 var userRoutes = require('./api/routes/user');
+var walletRoutes = require('./api/routes/wallet');
+var egcRoutes = require('./api/routes/coupon');
+var paymentRoutes = require('./api/routes/payment');
 
 //Passport declarations
 app.use(require("express-session")({
@@ -148,6 +151,9 @@ app.use((req, res, next) => {
   // Routes
   app.use("/v1/items", itemsRoutes);
   app.use("/v1/movies", moviesRoutes);
+  app.use("/v1/wallet", walletRoutes);
+  app.use("/v1/coupon", egcRoutes);
+  app.use("/v1/payment", paymentRoutes);
   app.use(authRoutes);
   app.use('/user', userRoutes);
   
