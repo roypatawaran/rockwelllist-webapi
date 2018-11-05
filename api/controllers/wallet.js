@@ -40,7 +40,7 @@ module.exports = {
                     res.status(200).send(respose);
                 }
                 else{
-                    res.send({message: "Error: Coupon already redeemed."});
+                    res.status(404).send({message: "Error: Coupon already redeemed."});
                 }
             }
             else{
