@@ -18,18 +18,19 @@ module.exports = {
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.find({user: user._id});
             if(egc.length > 0){
-                if(!egc[0].claimed){
+                var egc = egc[0];
+                if(!egc.claimed){
                     //TODO validation for expiration
                     var claims = new Claims({
-                        amount: egc[0].amount,
-                        egc: egc[0],
+                        amount: egc.amount,
+                        egc: egc,
                         transaction_date: new Date(),
                         wallet: wallet[0]
                     });
 
                     var _claims = await claims.save();
                     egc.claimed = true;
-                    var _egc = await Egc.findOneAndUpdate({tracking_id: egc_id}, egc);
+                    var _egc = await Egc.findByIdAndUpdate(egc._id, egc);
 
                     var respose = {
                         _id: _egc._id,
