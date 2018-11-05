@@ -14,22 +14,22 @@ module.exports = {
     redeem: async (req, res, next) => {
         try {
             var egc_id = req.body.egc_id;
-            var egc = await Egc.findById(egc_id);
+            var egc = await Egc.find({tracking_id: egc_id});
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.find({user: user._id});
-            if(egc){
-                if(!egc.claimed){
+            if(egc.length > 0){
+                if(!egc[0].claimed){
                     //TODO validation for expiration
                     var claims = new Claims({
-                        amount: egc.amount,
-                        egc: egc,
+                        amount: egc[0].amount,
+                        egc: egc[0],
                         transaction_date: new Date(),
                         wallet: wallet[0]
                     });
 
                     var _claims = await claims.save();
                     egc.claimed = true;
-                    var _egc = await Egc.findByIdAndUpdate(egc_id, egc);
+                    var _egc = await Egc.findOneAndUpdate({tracking_id: egc_id}, egc);
 
                     var respose = {
                         _id: _egc._id,

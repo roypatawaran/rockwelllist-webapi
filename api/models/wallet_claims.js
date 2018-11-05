@@ -12,7 +12,7 @@ const walletClaimsSchema = new mongoose.Schema({
     }],
     amount: Number,
     transaction_date: Date,
-    isSuccess: Boolean
+    status: String
 });
 
 module.exports = mongoose.model('wallet_claims', walletClaimsSchema);

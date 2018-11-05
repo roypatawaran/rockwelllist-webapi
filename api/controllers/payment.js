@@ -31,7 +31,7 @@ module.exports = {
                     amount: amount,
                     tracking_id: tracking_id,
                     transaction_date: new Date(),
-                    isSuccess: true
+                    status: "SUCCESSFUL"
                 });
 
                 var payment = await _payment.save();
@@ -54,7 +54,7 @@ module.exports = {
 
             if(payment || claims){
                 if(payment){
-                    if(payment.isSuccess){
+                    if(payment.status == "SUCCESSFUL"){
                         var status = {
                             _id: payment._id,
                             date_received: payment.transaction_date.getTime(),
@@ -76,7 +76,7 @@ module.exports = {
                     }
                 }
                 else if(claims){
-                    if(claims.isSuccess){
+                    if(claims.status == "SUCCESSFUL"){
                         var status = {
                             _id: claims._id,
                             date_received: claims.transaction_date.getTime(),

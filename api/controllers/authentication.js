@@ -310,7 +310,6 @@ module.exports = {
     },
     emailLogin: async (req, res, next) => {
         try{
-            req.body.username = "vincent.maceda@devboxph.com";
             var usr = await user.findOne({username: req.body.username});
             console.log("VALID" + usr);
 

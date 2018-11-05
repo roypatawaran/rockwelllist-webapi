@@ -13,7 +13,7 @@ const walletPaymentsSchema = new mongoose.Schema({
     amount: Number,
     tracking_id: String,
     transaction_date: Date,
-    isSuccess: Boolean
+    status: String
 });
 
 module.exports = mongoose.model('wallet_payment', walletPaymentsSchema);
