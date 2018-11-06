@@ -1,5 +1,5 @@
-const Egc = require('../models/egc');
-const pagination = require('../utils/pagination');
+var Egc = require('../models/egc');
+var pagination = require('../utils/pagination');
 var egc = require('../models/egc');
 var mongoose = require('mongoose');
 
@@ -8,14 +8,14 @@ module.exports = {
         try {
             var dateToday = new Date(Date.now());
             var egc = new Egc({
-                amount: 500,
+                amount: 1,
                 claimed: false,
                 created_date: dateToday,
                 expiration_date: dateToday.setDate(dateToday.getMonth() + 2),
                 name: "Rockwellist E-GC",
-                tracking_id: "Code Sequence 1950-4775"
+                tracking_id: "123456789"
             }) 
-            const _egc = await egc.save();
+            var _egc = await egc.save();
             res.status(201).json(_egc);
         } catch(err) {
             next(err);
