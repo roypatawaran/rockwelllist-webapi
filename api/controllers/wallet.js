@@ -45,7 +45,7 @@ module.exports = {
                 }
             }
             else{
-                res.send({message: "Error: Coupon invalid."});
+                res.status(404).send({message: "Error: Coupon invalid."});
             }
         } catch(err) {
             next(err);
@@ -119,7 +119,7 @@ module.exports = {
             var _wallet = Array.isArray(wallet) ? wallet[0] : wallet;
             var totalAmount = await getWalletAmount(_wallet);
 
-            res.send({Amount: totalAmount});
+            res.send({balance: totalAmount});
         }
         catch(err){
             console.log(err);
@@ -224,7 +224,7 @@ module.exports = {
             var resp = {
                 _id: paymentToken._id,
                 date_generated: paymentToken.date_generated.getTime(),
-                expiration: paymentToken.date_expires.getTime(),
+                date_expired: paymentToken.date_expires.getTime(),
                 token: paymentToken.qr_code
             }
 
