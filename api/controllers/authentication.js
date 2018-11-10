@@ -93,11 +93,13 @@ module.exports = {
             accessCode = accessCode.replace("Bearer ", "");
             var decodedToken = jwt.decode(accessCode);
             var _user = await user.findById(decodedToken.data._id);
+            var status = await checkUserDetails(_user.username);
             
             var tempThrow = {
                 "username": _user.username,
                 "first_name": _user.firstName,
                 "last_name": _user.lastName,
+                "is_new_user": !status,
                 "sex": _user.sex,
                 "mobile_number": _user.mobileNumber,
                 "birthdate":  new Date(_user.birthDate).getTime()

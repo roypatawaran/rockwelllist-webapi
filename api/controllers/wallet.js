@@ -198,7 +198,12 @@ module.exports = {
         }
         catch(err){
             console.log(err);
-            next(err);
+            var obj = {
+                "pagination": {},
+                "data": []
+            };
+
+            res.status(200).json(obj);
         }
     },
     paymentToken: async (req, res, next) =>{
@@ -239,8 +244,8 @@ module.exports = {
                 date_expired: paymentToken.date_expires.getTime(),
                 token: paymentToken.qr_code
             }
-
-             res.send(resp);
+            console.log(resp);
+            res.send(resp);
         }
         catch(err){
             console.log(err);
