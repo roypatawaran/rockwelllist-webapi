@@ -33,7 +33,7 @@ router.post('/auth/email/registration', checkApi.checkAPIKey, authsController.em
 router.post('/auth/email/login', checkApi.checkAPIKey, authsController.emailLogin);
 router.get('/logout', checkApi.checkAPIKey, authsController.logout);
 router.get('/successSignin/:id', checkApi.checkAPIKey, authsController.successSignin);
-router.get('/activate/:id', checkApi.checkAPIKey, authsController.activateUser);
+router.get('/activate/:id', authsController.activateUser);
 
 //===============Facebook Authentication
 router.get('/auth/social', passport.authenticate('facebook', {scope: ['email']}));
