@@ -8,6 +8,8 @@ var crypto = require("crypto");
 var api = require("../models/api");
 var AccessToken = require("../models/access_token");
 var authController = require("../controllers/authentication.js");
+var response_msgs = require("../utils/response_msgs");
+var configs = require("../utils/configs");
 const nodemailer = require('nodemailer');
 var moment = require('moment');
 const jwt = require("jsonwebtoken");
@@ -133,15 +135,11 @@ module.exports = {
 
             if(usr === null){
                 res.status(401);
-                res.send("User does not exist");
+                res.send(response_msgs.error_msgs.UserNotExist);
             }
             else{
                 generateEmail("passwordResetEmail", req.body.username, resetToken);
-                return res.send({
-                    "success": {
-                        "message": "Password reset successful"
-                    }
-                });
+                return res.send(response_msgs.success_msgs.EmailSent);
             }
         }
         catch(err){
@@ -157,11 +155,11 @@ module.exports = {
             var usr = await user.findOne({forgotPassword: req.params.id});
             if(!usr){
                 res.status(403);
-                return res.send("Invalid Password Token");
+                return res.send(response_msgs.error_msgs.InvalidPasswordToken);
             }
             else{
                 var _user = await user.findOneAndUpdate({_id: usr._id}, {password: pwhash});
-                return res.send("User Password has been Reset");
+                return res.send(response_msgs.success_msgs.PasswordReset);
             }
         }
         catch(err){
@@ -208,7 +206,7 @@ module.exports = {
                     if(sex != "m" && sex != "f")
                     {
                         res.status(400);
-                        return res.send("Error: Invalid input for Sex");
+                        return res.send({message: response_msgs.error_msgs.InvalidInputSex});
                     }
 
                     var objectTemp = {
@@ -230,14 +228,14 @@ module.exports = {
                                 mobile_number: mobileNumber,
                                 birthdate: new Date(birthDate).getTime()
                             }
-                            console.log(resp);
+                            console.log(tempObject);
                             res.send(tempObject);
                     }
                 }
                 else
                 {
                     res.status(403);
-                    res.send("Error: User not found");
+                    res.send(response_msgs.error_msgs.UserNotExist);
                 }
             }
         }
@@ -267,7 +265,7 @@ module.exports = {
             req.body.password = req.sanitize(req.body.password);
 
             if(!regex.test(req.body.username)){
-                return res.status(401).send({message: "Error: Email is not valid."})
+                return res.status(401).send(response_msgs.error_msgs.EmailNotValid)
             }
             
             var hash = "";
@@ -291,7 +289,7 @@ module.exports = {
                 res.send({});
             }
             else{
-                res.status(400).send({message: "Error: Email already taken."})
+                res.status(400).send(response_msgs.error_msgs.EmailTaken);
             }
         }
         catch(err){
@@ -306,9 +304,9 @@ module.exports = {
             console.log("VALID" + usr);
 
             var isUserValid = await checkUserIfValid(usr, req.body.password);
-            if(isUserValid.indexOf("Error") > -1){
+            if(isUserValid.message.indexOf("Error") > -1){
                 res.status(401);
-                return res.send({message: isUserValid});
+                return res.send(isUserValid);
             }
             else{
                 var status = await checkUserDetails(req.body.username);
@@ -457,7 +455,7 @@ module.exports = {
             var access_token = await AccessToken.find({user: _user});
             if(access_token.length > 0){
                 var acc = await AccessToken.remove({user: _user});
-                res.send({message: "Successfully logged out."})
+                res.send(response_msgs.success_msgs.Logout);
             }
         }
         catch(err){
@@ -492,16 +490,16 @@ comparePassword = async function(password, hash){
 
 checkUserIfValid = async function(usr, reqPassword){
     if(!usr){
-        return "Error: Username is not registered.";
+        return response_msgs.error_msgs.UserNotExist;
     }
 
     if(usr.isValidated != "true"){
-        return "Error: User is not yet validated";
+        return response_msgs.error_msgs.UserNotValidated;
     }
 
     var isMatch = await comparePassword(reqPassword , usr.password);
     if(!isMatch){
-        return "Error: Invalid password"
+        return response_msgs.error_msgs.InvalidPassword;
     }
 
     return "User is valid";
@@ -518,9 +516,9 @@ function isLoggedIn (req, res, next) {
 generateEmail = function(type, email, hash){
     nodemailer.createTestAccount((err, account) => {
         let transporter = nodemailer.createTransport({
-            host: 'smtp.office365.com',
-            port: 587,
-            secure: false, // true for 465, false for other ports
+            host: configs.nodemailer.host,
+            port: configs.nodemailer.port,
+            secure: configs.nodemailer.secure, // true for 465, false for other ports
             auth: {
                 user: process.env.EMAIL, // generated ethereal user
                 pass: process.env.PASSWORD // generated ethereal password
@@ -549,7 +547,7 @@ generateEmail = function(type, email, hash){
 
         // setup email data with unicode symbols
         let mailOptions = {
-            from: 'vincent.maceda@devboxph.com', // sender address
+            from: configs.nodemailer.senderAddress, // sender address
             to: email, // list of receivers
             subject: subj, // Subject line
             text: 'Hello world?', // plain text body
