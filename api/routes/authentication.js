@@ -31,10 +31,7 @@ router.put('/user/update', [checkAuth, checkApi.checkAPIKey], authsController.us
 router.get('/todayDate', checkApi.checkAPIKey, authsController.todayDate);
 router.post('/auth/email/registration', checkApi.checkAPIKey, authsController.emailRegistration);
 router.post('/auth/email/login', checkApi.checkAPIKey, authsController.emailLogin);
-router.get("/logout", function(req,res){
-    req.logout();
-    res.redirect("/");
-});
+router.get('/logout', checkApi.checkAPIKey, authsController.logout);
 router.get('/successSignin/:id', checkApi.checkAPIKey, authsController.successSignin);
 router.get('/activate/:id', checkApi.checkAPIKey, authsController.activateUser);
 

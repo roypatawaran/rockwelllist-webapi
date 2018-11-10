@@ -7,10 +7,10 @@ var bcrypt = require("bcrypt");
 
 var userSchema = new mongoose.Schema({
 	username: String,
+	password: String,
 	signupEmail: String,
 	firstName: String,
 	lastName: String,
-	password: String,
 	birthDate: Date,
 	sex: String,
 	mobileNumber: String,
@@ -23,19 +23,17 @@ var userSchema = new mongoose.Schema({
 		email: String,
 		name: String
 	}
-	
 });
 
-userSchema.pre('save', function(next){
-    var user = this;
-    if (!user.isModified('password')) {
-       return next()
-    }
+// userSchema.pre('save', function(next){
+//     var user = this;
+//     if (!user.isModified('password')) {
+//        return next()
+//     }
 
-    user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-    next()
-});
+//     user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+//     next()
+// });
 
 userSchema.plugin(passportLocalMongoose, {usernameField: "username"});
-
 module.exports = mongoose.model("User", userSchema);

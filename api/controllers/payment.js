@@ -16,31 +16,23 @@ module.exports = {
             var tracking_id = req.sanitize(req.body.tracking_id);
             var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
             var _wallet = await Wallet.findById(req.sanitize(req.body.wallet_id));
-
+            var _wallet_payment = await Payment.findById(req.body._id);
+    
             var walletAmount = await getWalletAmount(_wallet);
             var balance = walletAmount - amount;
-
+    
             if(balance < 0)
             {
                 res.json({message: "Payment Error: Insufficient balance."});
             }
             else{
-                var _payment = new Payment({
-                    wallet: _wallet._id,
-                    tenant: _tenant._id,
-                    amount: amount,
-                    tracking_id: tracking_id,
-                    transaction_date: new Date(),
-                    status: "SUCCESSFUL"
-                });
-
-                var payment = await _payment.save();
-
+                _wallet_payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "SUCCESSFUL"});
+    
                 res.status(200).json({
                     message: "Payment Successful."
                 })
             }
-        }
+          }  
         catch(err){
             console.log(err);
             next(err);
@@ -55,12 +47,13 @@ module.exports = {
             if(payment || claims){
                 if(payment){
                     if(payment.status == "SUCCESSFUL"){
+                        var tenant = await Tenant.findById(payment.tenant[0]);
                         var status = {
                             _id: payment._id,
                             date_received: payment.transaction_date.getTime(),
-                            date_updated: payment.transaction_date.getTime(),
-                            isSuccess: payment.isSuccess,
-                            message: "You have used" + payment.amount + " PHP at " + payment.tenant[0].name 
+                            date_updated: new Date().getTime(),
+                            status: payment.status,
+                            message: "You have used " + payment.amount + " PHP at " + tenant.name 
                         }
                         res.send(status);
                     }
@@ -69,7 +62,6 @@ module.exports = {
                             _id: payment._id,
                             date_received: payment.transaction_date.getTime(),
                             date_updated: payment.transaction_date.getTime(),
-                            isSuccess: payment.isSuccess,
                             message: "Payment request is still being verified."  
                         };
                         res.status(202).send(status);
@@ -81,7 +73,7 @@ module.exports = {
                             _id: claims._id,
                             date_received: claims.transaction_date.getTime(),
                             date_updated: claims.transaction_date.getTime(),
-                            isSuccess: claims.isSuccess,
+                            status: claims.status,
                             message: "You have added " + claims.amount + " PHP to your wallet."  
                         }
                         res.send(status);
@@ -91,7 +83,6 @@ module.exports = {
                             _id: claims._id,
                             date_received: claims.transaction_date.getTime(),
                             date_updated: claims.transaction_date.getTime(),
-                            isSuccess: claims.isSuccess,
                             message: "Payment request is still being verified."  
                         };
                         res.status(202).send(status);
@@ -100,7 +91,7 @@ module.exports = {
     
             }
             else{
-                res.send({message: "Error: No payment details found."})
+                res.status(404).send({message: "Error: No payment details found."})
             }
         }
         catch(err){
@@ -120,7 +111,8 @@ async function getWalletAmount(wallet){
     });
 
     payment.forEach(element => {
-        totalPayment += element.amount;
+        if(element.amount != undefined)
+            totalPayment += element.amount;
     });
 
     totalAmount = totalClaims - totalPayment;

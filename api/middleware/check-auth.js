@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const atob = require('atob');
+var AccessToken = require('../models/access_token');
+var User = require('../models/user');
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
         if(typeof token == "undefined")
@@ -10,8 +12,21 @@ module.exports = (req, res, next) => {
             });
 
         const decoded = jwt.verify(token, "secret");
-        req.userData = decoded;
-        next();
+        var user = await User.findById(decoded.data._id);
+        var access_token = await AccessToken.find({user: user});
+        if(access_token.length > 0){
+            if(access_token[0].access_token == token){
+                req.userData = decoded;
+                next();
+            }
+            else{
+                throw err;
+            }
+        }
+        else{
+            throw err;
+        }
+        
     } catch (error) {
         if(error.message.indexOf("split") > -1)
         {

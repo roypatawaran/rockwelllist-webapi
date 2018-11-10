@@ -53,11 +53,17 @@ module.exports = {
     },
     payment: async (req, res, next) => {
       try{
-        var amount = parseFloat(req.sanitize(req.body.amount));
-        var tracking_id = req.sanitize(req.body.tracking_id);
-        var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
-        var _wallet = await Wallet.findById(req.sanitize(req.body.wallet_id));
+        //var amount = parseFloat(req.sanitize(req.body.amount));
+        // var tracking_id = req.sanitize(req.body.tracking_id);
+        // var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
+        // var _wallet = await Wallet.findById(req.sanitize(req.body.wallet_id));
+        // var _wallet_payment = await Payment.findById(req.body._id);
 
+        var amount = 100;
+        var tracking_id = "Test tracking ID";
+        var _tenant = await "5ba206fc3d20ff31503659fc";
+        var _wallet = await "5bdd5251c4c8a22e44088e38";
+        var _wallet_payment = "5be5695dc5a2792f50a9e81c";
         var walletAmount = await getWalletAmount(_wallet);
         var balance = walletAmount - amount;
 
@@ -66,14 +72,7 @@ module.exports = {
             res.json({message: "Payment Error: Insufficient balance."});
         }
         else{
-            var _payment = new Payment({
-                wallet: _wallet._id,
-                tenant: _tenant._id,
-                amount: amount,
-                tracking_id: tracking_id,
-                transaction_date: new Date(),
-                isSuccess: true
-            });
+            var _payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant._id, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "successful"});
 
             var payment = await _payment.save();
 
@@ -106,6 +105,7 @@ module.exports = {
     },
     getWallet: async (req, res, next) => {
         try{
+            var x = process.env.Email;
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.find({user: user._id});
             if(wallet.length == 0){
@@ -152,16 +152,18 @@ module.exports = {
             }
 
             for(var x = 0; x < payment.length; x ++){
-                var _tenant = await Tenant.findById(payment[x].tenant[0])
-                var trans = {
-                    _id: payment[x]._id,
-                    tracking_id: payment[x].tracking_id,
-                    name: _tenant.name,
-                    transaction_date: payment[x].transaction_date.getTime(),
-                    credit_amount: 0.00,
-                    debit_amount: payment[x].amount,
-                };
-                transactions.push(trans);
+                    if(payment[x].amount != undefined){
+                        var _tenant = await Tenant.findById(payment[x].tenant[0])
+                        var trans = {
+                            _id: payment[x]._id,
+                            tracking_id: payment[x].tracking_id,
+                            name: _tenant.name,
+                            transaction_date: payment[x].transaction_date.getTime(),
+                            credit_amount: 0.00,
+                            debit_amount: payment[x].amount,
+                        };
+                    transactions.push(trans);
+                }
             }
 
             transactions.sort(function(a,b){
@@ -211,24 +213,34 @@ module.exports = {
             var token = jwt.sign({
                 wallet: crypto.createHash('md5').update(wallet[0]._id.toString()).digest('hex'),
                 user: crypto.createHash('md5').update(user._id.toString()).digest('hex')
-            }, hash);
+            }, hash, {expiresIn: '7m'});
+
+            var wallet_payment = new Payment({
+                wallet: wallet,
+                status: "INSUCCESSFUL",
+                transaction_date: new Date(),
+
+            });
+
+            var payment = await wallet_payment.save();
 
             var paymentToken = new PaymentToken({
                 qr_code: token,
                 date_generated: new Date().getTime(),
-                date_expires: dateToday.setMonth(dateToday.getMonth() + 2)
+                date_expires: dateToday.setMinutes(dateToday.getMinutes() + 7),
+                wallet_payment: payment
             });
 
             paymentToken = await paymentToken.save();
 
             var resp = {
-                _id: paymentToken._id,
+                _id: payment._id,
                 date_generated: paymentToken.date_generated.getTime(),
                 date_expired: paymentToken.date_expires.getTime(),
                 token: paymentToken.qr_code
             }
 
-            res.send(resp);
+             res.send(resp);
         }
         catch(err){
             console.log(err);
@@ -254,7 +266,8 @@ async function getWalletAmount(wallet){
     });
 
     payment.forEach(element => {
-        totalPayment += element.amount;
+        if(element.amount != undefined)
+            totalPayment += element.amount;
     });
 
     totalAmount = totalClaims - totalPayment;

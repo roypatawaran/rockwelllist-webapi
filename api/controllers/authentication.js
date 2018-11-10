@@ -6,11 +6,14 @@ var user = require("../models/user.js");
 var passport = require("passport");
 var crypto = require("crypto");
 var api = require("../models/api");
+var AccessToken = require("../models/access_token");
 var authController = require("../controllers/authentication.js");
 const nodemailer = require('nodemailer');
 var moment = require('moment');
 const jwt = require("jsonwebtoken");
 var _jwt = require('../configs/jwt');
+var bcryp = require('bcrypt');
+var regex = require('regex-email');
 
 module.exports = {
     getUserList: async (req, res, next) => {
@@ -149,21 +152,16 @@ module.exports = {
     forgotPassword: async (req, res, next) => {
         try{
             req.params.id = req.sanitize(req.params.id);
-            req.body.password = "Test123";
+            req.body.password =req.sanitize(req.body.password);
+            var pwhash = await bcryp.hash(req.body.password, 10);
             var usr = await user.findOne({forgotPassword: req.params.id});
             if(!usr){
                 res.status(403);
                 return res.send("Invalid Password Token");
             }
             else{
-                usr.setPassword(req.body.password, function(err){
-                    usr.forgotPassword = null;
-                    usr.save(function(err){
-                        req.logIn(usr, function(err){
-                            return res.send("User Password has been Reset");
-                        })
-                    })
-                })
+                var _user = await user.findOneAndUpdate({_id: usr._id}, {password: pwhash});
+                return res.send("User Password has been Reset");
             }
         }
         catch(err){
@@ -173,7 +171,6 @@ module.exports = {
     },
     signUp: async (req, res, next) => {
         try{
-            req.query.username = "vincent.maceda@devboxph.com";
             var usr = await user.find({username: req.query.username});
             if(usr.length != 0){
                 return res.send(usr);
@@ -211,7 +208,7 @@ module.exports = {
                     if(sex != "m" && sex != "f")
                     {
                         res.status(400);
-                        res.send("Invalid input for Sex");
+                        res.send("Error: Invalid input for Sex");
                     }
 
                     var objectTemp = {
@@ -268,39 +265,33 @@ module.exports = {
             console.log(req.headers['x-api-key']);
             req.body.username = req.sanitize(req.body.username);
             req.body.password = req.sanitize(req.body.password);
-            req.body.firstName = req.sanitize(req.body.firstName);
-            req.body.lastName = req.sanitize(req.body.lastName);
-            req.body.birthDate = req.sanitize(req.body.birthDate);
-            req.body.sex = req.sanitize(req.body.sex);
-            req.body.mobileNumber = req.sanitize(req.body.mobileNumber);
+
+            if(!regex.test(req.body.username)){
+                return res.status(401).send({message: "Error: Email is not valid."})
+            }
             
             var hash = "";
             var token = "";
-            
-            if(req.body.sex != "m" && req.body.sex != "f")
-            { 
-                res.status(400);
-                res.json({message: "Invalid input for Sex"});
-            }
 
             var usr = await user.find({username: req.body.username});
             if(usr.length == 0){
                 token = crypto.randomBytes(16).toString('hex');
                 hash = crypto.randomBytes(8).toString('hex');
+                pwhash = await bcryp.hash(req.body.password, 10);
 
                 var newUser = new user({
                     username: req.body.username,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    birthDate: req.body.birthDate,
-                    sex: req.body.sex,
-                    mobileNumber: req.body.mobileNumber,
                     isValidated: hash,
-                    accessCode: token
+                    accessCode: token,
+                    password: pwhash
                 });
 
-                var _user = user.register(newUser, req.body.password);
+                var _user = await newUser.save();
+                generateEmail("activationEmail", req.body.username, hash);
                 res.send({});
+            }
+            else{
+                res.status(400).send({message: "Error: Email already taken."})
             }
         }
         catch(err){
@@ -310,12 +301,14 @@ module.exports = {
     },
     emailLogin: async (req, res, next) => {
         try{
+            var x = process.env.EMAIL;
             var usr = await user.findOne({username: req.body.username});
             console.log("VALID" + usr);
 
-            if(usr.isValidated != "true"){
+            var isUserValid = await checkUserIfValid(usr, req.body.password);
+            if(isUserValid.indexOf("Error") > -1){
                 res.status(401);
-                res.send("User Not Yet Validated");
+                return res.send({message: isUserValid});
             }
             else{
                 var status = await checkUserDetails(req.body.username);
@@ -351,6 +344,18 @@ module.exports = {
                 var token = jwt.sign({
                     data: relevantData
                 }, _jwt.JWT_KEY);
+
+                var access_token = await AccessToken.find({user: usr});
+                if(access_token.length > 0){
+                    access_token = await AccessToken.findOneAndUpdate({user: usr}, {access_token: token});
+                }
+                else{
+                    access_token = new AccessToken({
+                        user:usr,
+                        access_token: token
+                    });
+                    access_token = await access_token.save();
+                }
 
                 relevantData.access_token = token;
                 
@@ -444,6 +449,21 @@ module.exports = {
             console.log(err);
             next(err);
         }
+    },
+    logout: async (req, res, next) => {
+        try{
+            var token = jwt.verify(req.headers.authorization.replace("Bearer ", ""), "secret");
+            var _user = await user.findById(token.data._id);
+            var access_token = await AccessToken.find({user: _user});
+            if(access_token.length > 0){
+                var acc = await AccessToken.remove({user: _user});
+                res.send({message: "Successfully logged out."})
+            }
+        }
+        catch(err){
+            console.log(err);
+            next();
+        }
     }
 }
 
@@ -457,6 +477,34 @@ compareUserData = function(request, user){
     }
     else
         return user;
+}
+
+comparePassword = async function(password, hash){
+    try{
+        var isMatch = await bcryp.compare(password, hash);
+        return isMatch;
+    }
+    catch(err){
+        console.log(err);
+        next(err);
+    }
+}
+
+checkUserIfValid = async function(usr, reqPassword){
+    if(!usr){
+        return "Error: Username is not registered.";
+    }
+
+    if(usr.isValidated != "true"){
+        return "Error: User is not yet validated";
+    }
+
+    var isMatch = await comparePassword(reqPassword , usr.password);
+    if(!isMatch){
+        return "Error: Invalid password"
+    }
+
+    return "User is valid";
 }
 
 function isLoggedIn (req, res, next) {
@@ -474,8 +522,11 @@ generateEmail = function(type, email, hash){
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                user: process.env.Email, // generated ethereal user
-                pass: process.env.Password // generated ethereal password
+                user: process.env.EMAIL, // generated ethereal user
+                pass: process.env.PASSWORD // generated ethereal password
+            },
+            tls: {
+                rejectUnauthorized: false
             }
         });
         var subj = "";
@@ -498,7 +549,7 @@ generateEmail = function(type, email, hash){
 
         // setup email data with unicode symbols
         let mailOptions = {
-            from: 'enzo.yu@devboxph.com', // sender address
+            from: 'vincent.maceda@devboxph.com', // sender address
             to: email, // list of receivers
             subject: subj, // Subject line
             text: 'Hello world?', // plain text body
