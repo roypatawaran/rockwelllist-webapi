@@ -208,7 +208,7 @@ module.exports = {
                     if(sex != "m" && sex != "f")
                     {
                         res.status(400);
-                        res.send("Error: Invalid input for Sex");
+                        return res.send("Error: Invalid input for Sex");
                     }
 
                     var objectTemp = {
@@ -237,7 +237,7 @@ module.exports = {
                 else
                 {
                     res.status(403);
-                    res.send("User not found");
+                    res.send("Error: User not found");
                 }
             }
         }
@@ -538,7 +538,7 @@ generateEmail = function(type, email, hash){
                 break;
             case "activationEmail":
                 subj = "Rockwell User Activation Email";
-                inlineHtml = '<a>https://rockwell-mobile.herokuapp.com/activate/'+hash +'</a>';
+                inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
                 break;
             default:
                 subj = "Rockwell User Activation Email";
