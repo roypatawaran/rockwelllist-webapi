@@ -502,7 +502,7 @@ checkUserIfValid = async function(usr, reqPassword){
         return response_msgs.error_msgs.InvalidPassword;
     }
 
-    return "User is valid";
+    return {message: "User is valid"};
 }
 
 function isLoggedIn (req, res, next) {
