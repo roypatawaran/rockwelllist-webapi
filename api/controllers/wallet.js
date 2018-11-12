@@ -222,7 +222,7 @@ module.exports = {
 
             var wallet_payment = new Payment({
                 wallet: wallet,
-                status: "INSUCCESSFUL",
+                status: "PENDING",
                 transaction_date: new Date(),
 
             });

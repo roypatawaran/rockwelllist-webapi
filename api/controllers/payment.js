@@ -23,7 +23,8 @@ module.exports = {
     
             if(balance < 0)
             {
-                res.json({message: "Payment Error: Insufficient balance."});
+                _wallet_payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "UNSUCCESSFUL"});
+                res.status(400).json({message: "Payment Error: Insufficient balance."});
             }
             else{
                 _wallet_payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "SUCCESSFUL"});
@@ -38,7 +39,7 @@ module.exports = {
             next(err);
         }
     },
-    payment_status: async (req, res, next) => {
+    payment_status: async (req, res, next) => { 
         try{
             var token_id = req.params.token_id;
             var payment = await Payment.findById(token_id);
@@ -57,11 +58,22 @@ module.exports = {
                         }
                         res.send(status);
                     }
+                    else if(payment.status == "UNSUCCESSFUL"){
+                        var status = {
+                            _id: payment._id,
+                            date_received: payment.transaction_date.getTime(),
+                            date_updated: new Date().getTime(),
+                            status: payment.status,
+                            message: "Payment failed" 
+                        }
+                        res.status(400).send(status);
+                    }
                     else{
                         var status = {
                             _id: payment._id,
                             date_received: payment.transaction_date.getTime(),
                             date_updated: payment.transaction_date.getTime(),
+                            status: "PENDING",
                             message: "Payment request is still being verified."  
                         };
                         res.status(202).send(status);
@@ -78,11 +90,22 @@ module.exports = {
                         }
                         res.send(status);
                     }
+                    else if(claims.status == "UNSUCCESSFUL"){
+                        var status = {
+                            _id: claims._id,
+                            date_received: claims.transaction_date.getTime(),
+                            date_updated: claims.transaction_date.getTime(),
+                            status: claims.status,
+                            message: "Failed adding " + claims.amount + " PHP to your wallet"  
+                        }
+                        res.status(400).send(status);
+                    }
                     else{
                         var status = {
                             _id: claims._id,
                             date_received: claims.transaction_date.getTime(),
                             date_updated: claims.transaction_date.getTime(),
+                            status: "PENDING",
                             message: "Payment request is still being verified."  
                         };
                         res.status(202).send(status);
