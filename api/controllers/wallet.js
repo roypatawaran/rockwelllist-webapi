@@ -208,15 +208,11 @@ module.exports = {
         try{
             var dateToday = new Date();
             var user = await getUser(req.headers.authorization);
-            var wallet = await Wallet.find({user: user._id});
-            var hash = crypto.createHash('md5').update(user._id + wallet._id).digest('hex');
+            var wallet = await Wallet.findOne({user: user._id});
+            // var hash = crypto.createHash('md5').update(user._id + wallet._id).digest('hex');
             if(!wallet){
                 res.send({message: "Wallet not found"});
             }
-            var token = jwt.sign({
-                wallet: crypto.createHash('md5').update(wallet[0]._id.toString()).digest('hex'),
-                user: crypto.createHash('md5').update(user._id.toString()).digest('hex')
-            }, hash, {expiresIn: '7m'});
 
             var wallet_payment = new Payment({
                 wallet: wallet,
@@ -226,6 +222,12 @@ module.exports = {
             });
 
             var payment = await wallet_payment.save();
+
+            var token = jwt.sign({
+                wallet: wallet._id,
+                _id: payment._id,
+                user: user._id
+            }, 'GK8t;(2=<J*~/u%', {expiresIn: '7m'});
 
             var paymentToken = new PaymentToken({
                 qr_code: token,
