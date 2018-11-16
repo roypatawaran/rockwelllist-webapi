@@ -13,7 +13,7 @@ module.exports = {
     payment: async (req, res, next) => {
         try{
             var amount = parseFloat(req.sanitize(req.body.amount));
-            var decodedToken = jwt.verify(req.body.token, 'GK8t;(2=<J*~/u%');
+            var decodedToken = jwt.verify(req.body.token, 'secret');
             var tracking_id = decodedToken._id;
             var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
             var _wallet = await Wallet.findById(decodedToken.wallet);

@@ -227,7 +227,7 @@ module.exports = {
                 wallet: wallet._id,
                 _id: payment._id,
                 user: user._id
-            }, 'GK8t;(2=<J*~/u%', {expiresIn: '7m'});
+            }, 'secret', {expiresIn: '7m'});
 
             var paymentToken = new PaymentToken({
                 qr_code: token,
