@@ -17,7 +17,7 @@ module.exports = {
             var tracking_id = decodedToken._id;
             var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
             var _wallet = await Wallet.findById(decodedToken.wallet);
-            var _wallet_payment = decodedToken._id;
+            var _wallet_payment = await Payment.findById(decodedToken._id);
     
             var walletAmount = await getWalletAmount(_wallet);
             var balance = walletAmount - amount;
