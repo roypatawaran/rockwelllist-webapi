@@ -188,9 +188,7 @@ module.exports = {
             }
             else{
                 var resp = {
-                    "pagination": {
-                        "next": {}
-                    },
+                    "pagination": {},
                     "data": transactions
                 };
                 res.send(resp);
