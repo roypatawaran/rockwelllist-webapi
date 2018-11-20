@@ -100,7 +100,7 @@ module.exports = {
             }   
             
         } catch(err) {
-            console.log(error);
+            console.log(err);
             var item_summary = {
                 "pagination": {},
                 "data": []

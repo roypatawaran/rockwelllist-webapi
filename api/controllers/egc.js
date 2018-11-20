@@ -4,6 +4,7 @@ var egc = require('../models/egc');
 var logs = require('../models/logs');
 var User = require('../models/user');
 var mongoose = require('mongoose');
+var response_msgs = require('../utils/response_msgs');
 
 module.exports = {
     create_coupon: async (req, res, next) => {
@@ -20,7 +21,7 @@ module.exports = {
             var _egc = await egc.save();
             res.status(201).json(_egc);
         } catch(err) {
-            next(err);
+            res.status(400).send(response_msgs.error_msgs.RequestCouldNotBeSaved);
         }
     },
     getCouponDetails: async (req, res, next) => {
@@ -37,12 +38,12 @@ module.exports = {
                 res.status(200).send(_egc);
             }
             else{
-                res.status(404).send({message: "Resource under given ID does not exist"});
+                res.status(404).send(response_msgs.error_msgs.NotFound);
             }
         }
         catch(err){
             console.log(err);
-            next(err);
+            res.status(400).send(response_msgs.error_msgs.RequestCantBeProcessed);
         }
     },
     load_egc: async (req, res, next) => {

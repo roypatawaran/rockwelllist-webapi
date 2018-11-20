@@ -1,16 +1,18 @@
 var express = require("express");
 const moviesController = require("../controllers/movies");
-var checkAuth = require('../middleware/check-auth');
-
-var router = express.Router();
+var checkAppVersion = require('../middleware/check-app-version');
 var checkAuth = require('../middleware/check-auth');
 var checkApi = require('../middleware/check-api');
 
-router.get("/", [checkAuth, checkApi.checkAPIKey], moviesController.getAll)
-      .post("/", [checkAuth, checkApi.checkAPIKey], moviesController.addItems)
-      .put("/", [checkAuth, checkApi.checkAPIKey], moviesController.updateById)
-      .delete("/", [checkAuth, checkApi.checkAPIKey], moviesController.deleteById);
-router.get("/featured", [checkAuth, checkApi.checkAPIKey], moviesController.getByFeatured);
-router.get("/:movieId", [checkAuth, checkApi.checkAPIKey], moviesController.getById);
+var router = express.Router();
+//var middleware = [checkAuth, checkApi.checkAPIKey, checkAppVersion.checkVersion];
+var middleware = [checkAuth, checkApi.checkAPIKey];
+
+router.get("/", middleware, moviesController.getAll)
+      .post("/", middleware, moviesController.addItems)
+      .put("/", middleware, moviesController.updateById)
+      .delete("/", middleware, moviesController.deleteById);
+router.get("/featured", middleware, moviesController.getByFeatured);
+router.get("/:movieId", middleware, moviesController.getById);
 
 module.exports = router;

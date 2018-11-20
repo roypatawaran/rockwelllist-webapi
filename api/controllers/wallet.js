@@ -9,6 +9,7 @@ var pagination = require('../utils/pagination');
 var mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 var crypto = require("crypto");
+var response_msgs = require("../utils/response_msgs");
 
 module.exports = {
     redeem: async (req, res, next) => {
@@ -41,14 +42,14 @@ module.exports = {
                     res.status(200).send(respose);
                 }
                 else{
-                    res.status(404).send({message: "Error: Coupon already redeemed."});
+                    res.status(400).send(response_msgs.error_msgs.EGCClaimed);
                 }
             }
             else{
-                res.status(404).send({message: "Error: Coupon invalid."});
+                res.status(400).send(response_msgs.error_msgs.InvalidCoupon);
             }
         } catch(err) {
-            next(err);
+            res.status(400).send(response_msgs.error_msgs.RequestCantBeProcessed);
         }
     },
     payment: async (req, res, next) => {
@@ -105,7 +106,6 @@ module.exports = {
     },
     getWallet: async (req, res, next) => {
         try{
-            var x = process.env.Email;
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.find({user: user._id});
             if(wallet.length == 0){
@@ -123,7 +123,7 @@ module.exports = {
         }
         catch(err){
             console.log(err);
-            next(err);
+            res.status(400).send(response_msgs.error_msgs.RequestCantBeProcessed);
         }
     },
     getTransactionHistory: async (req, res, next) => {
@@ -211,14 +211,13 @@ module.exports = {
             var wallet = await Wallet.findOne({user: user._id});
             // var hash = crypto.createHash('md5').update(user._id + wallet._id).digest('hex');
             if(!wallet){
-                res.send({message: "Wallet not found"});
+                res.status(404).send(response_msgs.error_msgs.WalletNotFound);
             }
 
             var wallet_payment = new Payment({
                 wallet: wallet,
                 status: "PENDING",
                 transaction_date: new Date(),
-
             });
 
             var payment = await wallet_payment.save();
@@ -249,7 +248,7 @@ module.exports = {
         }
         catch(err){
             console.log(err);
-            next(err);
+            res.status(400).send(response_msgs.error_msgs.RequestCantBeProcessed);
         }
     }
 }
@@ -271,7 +270,7 @@ async function getWalletAmount(wallet){
     });
 
     payment.forEach(element => {
-        if(element.amount != undefined)
+        if(element.amount != undefined && element.status != "PENDING" && element.status != "UNSUCCESSFUL")
             totalPayment += element.amount;
     });
 

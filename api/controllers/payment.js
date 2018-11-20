@@ -8,6 +8,8 @@ var pagination = require('../utils/pagination');
 var mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 var crypto = require("crypto");
+var response_msgs = require("../utils/response_msgs");
+
 
 module.exports = {
     payment: async (req, res, next) => {
@@ -18,6 +20,10 @@ module.exports = {
             var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
             var _wallet = await Wallet.findById(decodedToken.wallet);
             var _wallet_payment = await Payment.findById(decodedToken._id);
+
+            if(amount < 0){
+                return res.status(400).send(response_msgs.error_msgs.AmoungLessThanZero);
+            }
     
             var walletAmount = await getWalletAmount(_wallet);
             var balance = walletAmount - amount;
@@ -25,7 +31,7 @@ module.exports = {
             if(balance < 0)
             {
                 _wallet_payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "UNSUCCESSFUL"});
-                res.status(400).json({message: "Payment Error: Insufficient balance."});
+                res.status(400).json(response_msgs.error_msgs.InsufficientWallet);
             }
             else{
                 _wallet_payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "SUCCESSFUL"});
@@ -115,12 +121,12 @@ module.exports = {
     
             }
             else{
-                res.status(404).send({message: "Error: No payment details found."})
+                res.status(404).send(response_msgs.error_msgs.NotFound);
             }
         }
         catch(err){
             console.log(err);
-            next(err);
+            res.status(400).send(response_msgs.error_msgs.RequestCantBeProcessed);
         }
     },
     testRoute: async (req, res, next) => {
@@ -138,7 +144,7 @@ async function getWalletAmount(wallet){
     });
 
     payment.forEach(element => {
-        if(element.amount != undefined)
+        if(element.amount != undefined && element.status != "PENDING" && element.status != "UNSUCCESSFUL")
             totalPayment += element.amount;
     });
 

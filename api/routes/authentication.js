@@ -2,13 +2,17 @@ var express = require("express");
 var authsController = require("../controllers/authentication");
 var checkAuth = require('../middleware/check-auth');
 var checkApi = require('../middleware/check-api');
+var checkAppVersion = require('../middleware/check-app-version');
 var passport = require("passport");
 
 var router = express.Router();
 
-router.get("/userList", [checkAuth, checkApi.checkAPIKey], authsController.getUserList);
-router.get('/user/me', [checkAuth, checkApi.checkAPIKey], authsController.userMe);
-router.get('/apiSeed', [checkAuth, checkApi.checkAPIKey], authsController.apiSeed);
+//var middleware = [checkAuth, checkApi.checkAPIKey, checkAppVersion.checkVersion];
+var middleware = [checkAuth, checkApi.checkAPIKey];
+
+router.get("/userList", middleware, authsController.getUserList);
+router.get('/user/me', middleware, authsController.userMe);
+router.get('/apiSeed', middleware, authsController.apiSeed);
 
 //REST for Forgot Password
 router.get("/forgotPassword", function(req,res){
@@ -25,9 +29,9 @@ router.post("/forgotPassword/:id", checkApi.checkAPIKey, authsController.forgotP
 router.get("/backend_register", function(req,res){
     res.render("signUp.ejs");
 });
-router.get('/signup', [checkAuth, checkApi.checkAPIKey], authsController.signUp);
+router.get('/signup', middleware, authsController.signUp);
 
-router.put('/user/update', [checkAuth, checkApi.checkAPIKey], authsController.userUpdate);
+router.put('/user/update', middleware, authsController.userUpdate);
 router.get('/todayDate', checkApi.checkAPIKey, authsController.todayDate);
 router.post('/auth/email/registration', checkApi.checkAPIKey, authsController.emailRegistration);
 router.post('/auth/email/login', checkApi.checkAPIKey, authsController.emailLogin);
