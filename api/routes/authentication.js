@@ -42,4 +42,8 @@ router.get('/auth/facebook/callback',
   passport.authenticate('facebook', { successRedirect: '/facebookDetails',
                                       failureRedirect: '/login' }));
 
+//CMS
+router.post('/cms', authsController.add_cms_user);
+router.post('/cms/login', authsController.login_cms);
+
 module.exports = router;

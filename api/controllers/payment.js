@@ -122,6 +122,9 @@ module.exports = {
             console.log(err);
             next(err);
         }
+    },
+    testRoute: async (req, res, next) => {
+        res.send(req.body.token);
     }
 }
 

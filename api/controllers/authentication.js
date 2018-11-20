@@ -3,6 +3,7 @@ var moment = require("moment");
 var router = express.Router();
 // var neword = require("../models/orders.js");
 var user = require("../models/user.js");
+var cms_user = require("../models/cms_user");
 var passport = require("passport");
 var crypto = require("crypto");
 var api = require("../models/api");
@@ -301,7 +302,6 @@ module.exports = {
     },
     emailLogin: async (req, res, next) => {
         try{
-            var x = process.env.EMAIL;
             var usr = await user.findOne({username: req.body.username});
             console.log("VALID" + usr);
 
@@ -463,6 +463,86 @@ module.exports = {
         catch(err){
             console.log(err);
             next();
+        }
+    },
+    add_cms_user: async (req, res, next) => {
+        try{
+            console.log(req.headers['x-api-key']);
+            req.body.username = req.sanitize(req.body.username);
+            req.body.role = req.sanitize(req.body.role);
+
+            if(!regex.test(req.body.username)){
+                return res.status(401).send(response_msgs.error_msgs.EmailNotValid)
+            }
+            
+            var hash = "";
+            var token = "";
+
+            var usr = await cms_user.find({username: req.body.username});
+            if(usr.length == 0){
+                // token = crypto.randomBytes(16).toString('hex');
+                // hash = crypto.randomBytes(8).toString('hex');
+                // pwhash = await bcryp.hash(req.body.password, 10);
+
+                var newUser = new cms_user({
+                    username: req.body.username,
+                    role: req.body.role,
+                    password: "Rockwell123"
+                });
+
+                var _user = await newUser.save();
+                //generateEmail("activationEmail", req.body.username, hash);
+                res.send({});
+            }
+        }
+        catch(err){
+            console.log(err);
+            next(err);
+        }
+    },
+    login_cms: async (req, res, next) => {
+        try{
+            var usr = await cms_user.findOne({username: req.body.username});
+            console.log("VALID" + usr);
+
+            var isUserValid = {message: "user valid"}; //TODO
+            if(isUserValid.message.indexOf("Error") > -1){
+                res.status(401);
+                return res.send(isUserValid);
+            }
+            else{
+                var token = jwt.sign({
+                    data: {
+                        username: usr.username,
+                        role: usr.role
+                    }
+                }, _jwt.JWT_KEY);
+
+                var access_token = await AccessToken.find({user: usr});
+                if(access_token.length > 0){
+                    access_token = await AccessToken.findOneAndUpdate({user: usr}, {access_token: token});
+                }
+                else{
+                    access_token = new AccessToken({
+                        user:usr,
+                        access_token: token
+                    });
+                    access_token = await access_token.save();
+                }
+                var relevantData = {
+                    _id: usr._id,
+                    username: usr.username,
+                    role: usr.role,
+                    access_token: token
+                }
+                
+                console.log("-----------------------------------------")
+                return res.send(relevantData);
+            }
+        }   
+        catch(err){
+            console.log(err);
+            next(err);
         }
     }
 }

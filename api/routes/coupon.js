@@ -5,7 +5,9 @@ var checkApi = require('../middleware/check-api');
 
 var router = express.Router();
 
-router.post("/", [checkAuth, checkApi.checkAPIKey], egcController.create_coupon);
+router.post("/", egcController.create_coupon);
+router.get("/transactions", egcController.load_transactions);
 router.get("/:coupon_id", [checkAuth, checkApi.checkAPIKey], egcController.getCouponDetails);
+router.post("/load", egcController.load_egc);
 
 module.exports = router;
