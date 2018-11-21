@@ -533,6 +533,7 @@ module.exports = {
                     _id: usr._id,
                     username: usr.username,
                     role: usr.role,
+                    tenant_id: usr.tenantId,
                     access_token: token
                 }
                 
