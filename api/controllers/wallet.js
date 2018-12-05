@@ -139,30 +139,34 @@ module.exports = {
 
             for(var i = 0; i < claims.length; i++){
                 var egc = await Egc.findById(claims[i].egc[0]);
-                var trans = {
-                    _id: claims[i]._id,
-                    tracking_id: egc.tracking_id,
-                    name: egc.name,
-                    transaction_date: claims[i].transaction_date.getTime(),
-                    credit_amount: claims[i].amount,
-                    debit_amount: 0.00,
-                };
-
-                transactions.push(trans);
+                if(egc){
+                    var trans = {
+                        _id: claims[i]._id,
+                        tracking_id: egc.tracking_id,
+                        name: egc.name,
+                        transaction_date: claims[i].transaction_date.getTime(),
+                        credit_amount: claims[i].amount,
+                        debit_amount: 0.00,
+                    };
+    
+                    transactions.push(trans);
+                }
             }
 
             for(var x = 0; x < payment.length; x ++){
                     if(payment[x].amount != undefined){
-                        var _tenant = await Tenant.findById(payment[x].tenant[0])
-                        var trans = {
-                            _id: payment[x]._id,
-                            tracking_id: payment[x].tracking_id,
-                            name: _tenant.name,
-                            transaction_date: payment[x].transaction_date.getTime(),
-                            credit_amount: 0.00,
-                            debit_amount: payment[x].amount,
-                        };
-                    transactions.push(trans);
+                        var _tenant = await Tenant.findById(payment[x].tenant[0]);
+                        if(_tenant){
+                            var trans = {
+                                _id: payment[x]._id,
+                                tracking_id: payment[x].tracking_id,
+                                name: _tenant.name,
+                                transaction_date: payment[x].transaction_date.getTime(),
+                                credit_amount: 0.00,
+                                debit_amount: payment[x].amount,
+                            };
+                            transactions.push(trans);
+                        }
                 }
             }
 
