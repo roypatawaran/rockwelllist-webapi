@@ -622,12 +622,12 @@ generateEmail = function(type, email, hash){
             case "activationEmail":
                 subj = "Welcome to the Rockwellist App!";
                 //inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
-                inlineHtml = '<a href='+ process.env.APP_URL + hash +'">Activate Your Account Now!</a>';
+                inlineHtml = '<a href="https://'+ process.env.APP_URL + '/activate/' + hash +'">Activate Your Account Now!</a>';
                 break;
             default:
                 subj = "Welcome to the Rockwellist App!";
                 //inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
-                inlineHtml = '<a href='+ process.env.APP_URL + hash +'">Activate Your Account Now!</a>';
+                inlineHtml = '<a href="https://'+ process.env.APP_URL + '/activate/' + hash +'">Activate Your Account Now!</a>';
                 break;
         }
         var subject
