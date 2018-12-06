@@ -14,6 +14,7 @@ var app = express();
 var configAuth = require('./api/configs/FbAuth');
 var morgan = require('morgan');
 var databaseAuth = require('./api/configs/database');
+var environment = require('dotenv').config();
 
 var itemsRoutes = require('./api/routes/items');
 var authRoutes = require("./api/routes/authentication");
@@ -122,6 +123,16 @@ mongoose.connect(connectionString,{
     useMongoClient: true
 });
 mongoose.Promise = global.Promise;
+
+// View Engine
+app.set('views', path.join(__dirname, 'api/resources/views'));
+
+// Set Static Folder
+app.use(express.static(path.join(__dirname, 'api/resources/assets')));
+
+app.get("/", function(req,res){
+  res.render("welcome.ejs");
+});
 
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));

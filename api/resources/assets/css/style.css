@@ -1,0 +1,19 @@
+.feature-header {
+    font-size: 2.5vh;
+}
+
+.welcome-header {
+    font-size: 2.1vh;
+}
+
+.description {
+    font-size: 1.8vh;
+}
+
+.gray-color {
+    color: #686868;
+}
+
+.wrapper {
+    width: 80vw;
+}

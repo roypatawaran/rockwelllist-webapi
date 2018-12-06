@@ -182,6 +182,9 @@ module.exports = {
                 var next_id = pagination.getNextId(_transactions, transactions_index, transactions.length);
                 var transaction_summary = limit != 0 ? _transactions[transactions_index] : _transactions;
 
+                // Empty Transactions Handler
+                transaction_summary = transaction_summary.length == 0 ? [] : transaction_summary;
+
                 var resp = {
                     "pagination": {
                         "next": next_id
