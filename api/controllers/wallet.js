@@ -226,43 +226,20 @@ module.exports = {
 
             if(existingToken.length > 0){
                 var wallet_payment = await Payment.findById(existingToken[0].wallet_payment);
-                resp = {
-                    _id: wallet_payment._id,
-                    date_generated: existingToken[0].date_generated.getTime(),
-                    date_expired: existingToken[0].date_expires.getTime(),
-                    token: existingToken[0].qr_code
+                if(typeof wallet_payment.amount == "undefined"){
+                    resp = {
+                        _id: wallet_payment._id,
+                        date_generated: existingToken[0].date_generated.getTime(),
+                        date_expired: existingToken[0].date_expires.getTime(),
+                        token: existingToken[0].qr_code
+                    }
+                }
+                else{
+                    resp = await generateNewPaymentToken(wallet, user);
                 }
             }
             else{
-                var wallet_payment = new Payment({
-                    wallet: wallet,
-                    status: "PENDING",
-                    transaction_date: new Date(),
-                });
-    
-                var payment = await wallet_payment.save();
-    
-                var token = jwt.sign({
-                    wallet: wallet._id,
-                    _id: payment._id,
-                    user: user._id
-                }, 'secret', {expiresIn: '7m'});
-    
-                var paymentToken = new PaymentToken({
-                    qr_code: token,
-                    date_generated: new Date().getTime(),
-                    date_expires: dateToday.setMinutes(dateToday.getMinutes() + 7),
-                    wallet_payment: payment
-                });
-    
-                paymentToken = await paymentToken.save();
-    
-                resp = {
-                    _id: payment._id,
-                    date_generated: paymentToken.date_generated.getTime(),
-                    date_expired: paymentToken.date_expires.getTime(),
-                    token: paymentToken.qr_code
-                }
+                resp = await generateNewPaymentToken(wallet, user);
             }
             
             console.log(resp);
@@ -309,4 +286,39 @@ async function getWalletAmount(wallet){
     totalAmount = totalClaims - totalPayment;
 
     return totalAmount;
+}
+
+async function generateNewPaymentToken(wallet, user){
+    var dateToday = new Date();
+    var wallet_payment = new Payment({
+        wallet: wallet,
+        status: "PENDING",
+        transaction_date: new Date(),
+    });
+
+    var payment = await wallet_payment.save();
+
+    var token = jwt.sign({
+        wallet: wallet._id,
+        _id: payment._id,
+        user: user._id
+    }, 'secret', {expiresIn: '7m'});
+
+    var paymentToken = new PaymentToken({
+        qr_code: token,
+        date_generated: new Date().getTime(),
+        date_expires: dateToday.setMinutes(dateToday.getMinutes() + 7),
+        wallet_payment: payment
+    });
+
+    paymentToken = await paymentToken.save();
+
+    var resp = {
+        _id: payment._id,
+        date_generated: paymentToken.date_generated.getTime(),
+        date_expired: paymentToken.date_expires.getTime(),
+        token: paymentToken.qr_code
+    }
+
+    return resp;
 }
