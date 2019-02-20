@@ -17,8 +17,8 @@ module.exports = {
                 "merchantid": "00000155839729554638",
                 "merchant_ip": "127.0.0.1",
                 "request_id": request_id,
-                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif" + request_id,
-                "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif" + request_id,
+                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif/" + request_id,
+                "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif/" + request_id,
                 "disbursement_info": "sample test",
                 "disbursement_type": "0",
                 "disbursement_date": "",
@@ -230,8 +230,7 @@ module.exports = {
         res.send(body);
     },
     emailNotification: async (req, res, next) => {
-        console.log(req.params);
-        console.log(req.params.request_id);
+        updateStatus(req.params.request_id);
         email = "vincent.maceda@devboxph.com";
         nodemailer.createTestAccount((err, account) => {
             var transporter = nodemailer.createTransport({
@@ -273,6 +272,11 @@ module.exports = {
             });
         });
     }
+}
+
+async function updateStatus(request_id){
+    var disbursement = await Disbursement.findOneAndUpdate({request_id: request_id}, {status: "SUCCESS"});
+    return disbursement;
 }
 
 function setXML(signatureHeader){
