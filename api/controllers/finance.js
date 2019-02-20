@@ -229,6 +229,8 @@ module.exports = {
         res.send(body);
     },
     emailNotification: async (req, res, next) => {
+        console.log(JSON.parse(req.body));
+        console.log(req.body.toString());
         email = "vincent.maceda@devboxph.com";
         nodemailer.createTestAccount((err, account) => {
             var transporter = nodemailer.createTransport({
