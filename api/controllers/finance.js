@@ -16,8 +16,8 @@ module.exports = {
                 "merchantid": "00000155839729554638",
                 "merchant_ip": "127.0.0.1",
                 "request_id": request_id,
-                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/testroute",
-                "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/testroute",
+                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
+                "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
                 "disbursement_info": "sample test",
                 "disbursement_type": "0",
                 "disbursement_date": "",
@@ -228,9 +228,47 @@ module.exports = {
         var body = await makeDisbursement(xml, res);
         res.send(body);
     },
-    testroute: async (req, res, next) => {
-        var test = await app_versions.create({android: 123});
-        res.send(test);
+    emailNotification: async (req, res, next) => {
+        email = "vincent.maceda@devboxph.com";
+        nodemailer.createTestAccount((err, account) => {
+            var transporter = nodemailer.createTransport({
+                host: 'smtp.office365.com', // Office 365 server
+                port: 587,     // secure SMTP
+                secure: false, // false for TLS - as a boolean not string - but the default is false so just remove this completely
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+
+            var subj = "Disbursement Successful";
+            var inlineHtml = "<h3>Disbursement successful for Sample Tenant.</h3><&nbsp;<h4>Total Amount: ₱50.00</h4>";
+
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: 'vincent.maceda@devboxph.com', // sender address
+                to: email, // list of receivers
+                subject: subj, // Subject line
+                text: 'Hello world?', // plain text body
+                html: inlineHtml // html body
+            };
+
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log(info);
+                console.log('Message sent: %s', info.messageId);
+                // Preview only available when sending through an Ethereal account
+                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+
+            });
+        });
     }
 }
 
@@ -242,7 +280,7 @@ function setXML(signatureHeader){
 
     return xml2;
 }
-
+    
 function setSignatureDisbursementHeader(payload){
     var header_request = payload;
     var forSign = header_request.merchantid + header_request.request_id + header_request.merchant_ip + header_request.total_amount 
@@ -291,44 +329,5 @@ function makeDisbursement(payload, res){
 }
 
 generateEmail = function(email, hash){
-    email = "vincent.maceda@devboxph.com";
-    nodemailer.createTestAccount((err, account) => {
-        var transporter = nodemailer.createTransport({
-            host: 'smtp.office365.com', // Office 365 server
-            port: 587,     // secure SMTP
-            secure: false, // false for TLS - as a boolean not string - but the default is false so just remove this completely
-            auth: {
-                user: 'vincent.maceda@devboxph.com',
-                pass: 'Jajaja19'
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-
-        var subj = "Disbursement Successful";
-        var inlineHtml = "<h3>Disbursement successful for Sample Tenant.</h3><&nbsp;<h4>Total Amount: ₱50.00</h4>";
-
-        // setup email data with unicode symbols
-        let mailOptions = {
-            from: 'vincent.maceda@devboxph.com', // sender address
-            to: email, // list of receivers
-            subject: subj, // Subject line
-            text: 'Hello world?', // plain text body
-            html: inlineHtml // html body
-        };
-
-        // send mail with defined transport object
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return console.log(error);
-            }
-            console.log(info);
-            console.log('Message sent: %s', info.messageId);
-            // Preview only available when sending through an Ethereal account
-            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-
-
-        });
-    });
+    
 }

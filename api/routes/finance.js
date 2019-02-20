@@ -5,6 +5,6 @@ var router = express.Router();
 //var middleware = [checkAuth, checkApi.checkAPIKey, checkAppVersion.checkVersion];
 
 router.post("/disburse", finaceController.paynamics_disburse);
-router.get("/testroute", finaceController.testroute);
+router.get("/emailNotif", finaceController.emailNotification);
 
 module.exports = router;
