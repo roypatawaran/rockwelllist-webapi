@@ -14,6 +14,7 @@ var app = express();
 var configAuth = require('./api/configs/FbAuth');
 var morgan = require('morgan');
 var databaseAuth = require('./api/configs/database');
+// var environment = require('dotenv').config();
 
 var itemsRoutes = require('./api/routes/items');
 var authRoutes = require("./api/routes/authentication");
@@ -22,6 +23,7 @@ var userRoutes = require('./api/routes/user');
 var walletRoutes = require('./api/routes/wallet');
 var egcRoutes = require('./api/routes/coupon');
 var paymentRoutes = require('./api/routes/payment');
+var financeRoutes = require('./api/routes/finance');
 
 //Passport declarations
 app.use(require("express-session")({
@@ -123,6 +125,16 @@ mongoose.connect(connectionString,{
 });
 mongoose.Promise = global.Promise;
 
+// View Engine
+app.set('views', path.join(__dirname, 'api/resources/views'));
+
+// Set Static Folder
+app.use(express.static(path.join(__dirname, 'api/resources/assets')));
+
+app.get("/", function(req,res){
+  res.render("welcome.ejs");
+});
+
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -154,6 +166,7 @@ app.use((req, res, next) => {
   app.use("/v1/wallet", walletRoutes);
   app.use("/v1/coupon", egcRoutes);
   app.use("/v1/payment", paymentRoutes);
+  app.use("/v1/finance", financeRoutes);
   app.use(authRoutes);
   app.use('/user', userRoutes);
   

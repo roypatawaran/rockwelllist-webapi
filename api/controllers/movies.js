@@ -159,8 +159,44 @@ module.exports = {
             res.status(200).json(obj);
         }
     },
+    getByFeatured: async (req, res, next) => {
+        try {
+            const movies = await Movies.find({featured:true}).sort({"name": 1});
+            res.status(200).json(movies);
+        } catch(err) {
+            next(err);
+        }
+    },
+    getMoviesCMS: async (req, res, next) => {
+        try{
+            var movies = await Movies.find({});
+
+            var moviesFilter = movies.filter(function (el) {
+                return el.name != null || typeof el.name != "undefined";
+              });
+
+            res.send(moviesFilter);
+        }
+        catch(err){
+            console.log(err);
+            next(err);
+        }
+    },
+    getMovieDetailsCMS: async (req, res, next) => {
+        try{
+            var movie_id = req.params.movie_id;
+
+            var movie = await Movies.findById(movie_id);
+
+            res.send(movie);
+        }
+        catch(err){
+            console.log(err);
+            next(err);
+        }
+    },
     updateById: async(req, res, next) => {
-        const { movieId } = req.params;
+        const movieId  = req.body._id;
         try{
             const movie = await Movies.findOneAndUpdate({_id: movieId}, req.body);
             res.status(200).json(movie);
@@ -184,13 +220,5 @@ module.exports = {
             next(err);
         }
     },
-    getByFeatured: async (req, res, next) => {
-        try {
-            const movies = await Movies.find({featured:true}).sort({"name": 1});
-            res.status(200).json(movies);
-        } catch(err) {
-            next(err);
-        }
-    }
 }
 

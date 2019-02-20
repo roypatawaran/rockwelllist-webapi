@@ -17,7 +17,8 @@ var cmsUser = new mongoose.Schema({
 	isValidated: String,
 	accessCode: String,
     forgotPassword: String,
-    role: String
+	role: String,
+	tenantId: String
 });
 
 cmsUser.plugin(passportLocalMongoose, {usernameField: "username"});

@@ -139,30 +139,34 @@ module.exports = {
 
             for(var i = 0; i < claims.length; i++){
                 var egc = await Egc.findById(claims[i].egc[0]);
-                var trans = {
-                    _id: claims[i]._id,
-                    tracking_id: egc.tracking_id,
-                    name: egc.name,
-                    transaction_date: claims[i].transaction_date.getTime(),
-                    credit_amount: claims[i].amount,
-                    debit_amount: 0.00,
-                };
-
-                transactions.push(trans);
+                if(egc){
+                    var trans = {
+                        _id: claims[i]._id,
+                        tracking_id: egc.tracking_id,
+                        name: egc.name,
+                        transaction_date: claims[i].transaction_date.getTime(),
+                        credit_amount: claims[i].amount,
+                        debit_amount: 0.00,
+                    };
+    
+                    transactions.push(trans);
+                }
             }
 
             for(var x = 0; x < payment.length; x ++){
                     if(payment[x].amount != undefined){
-                        var _tenant = await Tenant.findById(payment[x].tenant[0])
-                        var trans = {
-                            _id: payment[x]._id,
-                            tracking_id: payment[x].tracking_id,
-                            name: _tenant.name,
-                            transaction_date: payment[x].transaction_date.getTime(),
-                            credit_amount: 0.00,
-                            debit_amount: payment[x].amount,
-                        };
-                    transactions.push(trans);
+                        var _tenant = await Tenant.findById(payment[x].tenant[0]);
+                        if(_tenant){
+                            var trans = {
+                                _id: payment[x]._id,
+                                tracking_id: payment[x].tracking_id,
+                                name: _tenant.name,
+                                transaction_date: payment[x].transaction_date.getTime(),
+                                credit_amount: 0.00,
+                                debit_amount: payment[x].amount,
+                            };
+                            transactions.push(trans);
+                        }
                 }
             }
 
@@ -177,6 +181,9 @@ module.exports = {
                 var transactions_index = pagination.getItemChunkIndex(_transactions, start_id);
                 var next_id = pagination.getNextId(_transactions, transactions_index, transactions.length);
                 var transaction_summary = limit != 0 ? _transactions[transactions_index] : _transactions;
+
+                // Empty Transactions Handler
+                transaction_summary = transaction_summary.length == 0 ? [] : transaction_summary;
 
                 var resp = {
                     "pagination": {
@@ -209,40 +216,32 @@ module.exports = {
             var dateToday = new Date();
             var user = await getUser(req.headers.authorization);
             var wallet = await Wallet.findOne({user: user._id});
-            // var hash = crypto.createHash('md5').update(user._id + wallet._id).digest('hex');
+            var resp = {}
             if(!wallet){
                 res.status(404).send(response_msgs.error_msgs.WalletNotFound);
             }
 
-            var wallet_payment = new Payment({
-                wallet: wallet,
-                status: "PENDING",
-                transaction_date: new Date(),
-            });
+            var payments = await Payment.find({wallet: wallet});
+            var existingToken = await getExistingToken(payments);
 
-            var payment = await wallet_payment.save();
-
-            var token = jwt.sign({
-                wallet: wallet._id,
-                _id: payment._id,
-                user: user._id
-            }, 'secret', {expiresIn: '7m'});
-
-            var paymentToken = new PaymentToken({
-                qr_code: token,
-                date_generated: new Date().getTime(),
-                date_expires: dateToday.setMinutes(dateToday.getMinutes() + 7),
-                wallet_payment: payment
-            });
-
-            paymentToken = await paymentToken.save();
-
-            var resp = {
-                _id: payment._id,
-                date_generated: paymentToken.date_generated.getTime(),
-                date_expired: paymentToken.date_expires.getTime(),
-                token: paymentToken.qr_code
+            if(existingToken.length > 0){
+                var wallet_payment = await Payment.findById(existingToken[0].wallet_payment);
+                if(typeof wallet_payment.amount == "undefined"){
+                    resp = {
+                        _id: wallet_payment._id,
+                        date_generated: existingToken[0].date_generated.getTime(),
+                        date_expired: existingToken[0].date_expires.getTime(),
+                        token: existingToken[0].qr_code
+                    }
+                }
+                else{
+                    resp = await generateNewPaymentToken(wallet, user);
+                }
             }
+            else{
+                resp = await generateNewPaymentToken(wallet, user);
+            }
+            
             console.log(resp);
             res.send(resp);
         }
@@ -258,6 +257,16 @@ async function getUser (request) {
     var _user = await User.findById(token.data._id);
 
     return _user;
+  }
+
+  async function getExistingToken(payments){
+    var dateToday = new Date();
+    var paymentTokens = [];  
+
+    for(var i = 0; i < payments.length; i++){
+        paymentTokens = await PaymentToken.find({wallet_payment: payments[i], date_expires: {$gte: dateToday}, date_generated: {$lte: dateToday}});
+    }
+    return paymentTokens;
   }
 
 async function getWalletAmount(wallet){
@@ -277,4 +286,39 @@ async function getWalletAmount(wallet){
     totalAmount = totalClaims - totalPayment;
 
     return totalAmount;
+}
+
+async function generateNewPaymentToken(wallet, user){
+    var dateToday = new Date();
+    var wallet_payment = new Payment({
+        wallet: wallet,
+        status: "PENDING",
+        transaction_date: new Date(),
+    });
+
+    var payment = await wallet_payment.save();
+
+    var token = jwt.sign({
+        wallet: wallet._id,
+        _id: payment._id,
+        user: user._id
+    }, 'secret', {expiresIn: '7m'});
+
+    var paymentToken = new PaymentToken({
+        qr_code: token,
+        date_generated: new Date().getTime(),
+        date_expires: dateToday.setMinutes(dateToday.getMinutes() + 7),
+        wallet_payment: payment
+    });
+
+    paymentToken = await paymentToken.save();
+
+    var resp = {
+        _id: payment._id,
+        date_generated: paymentToken.date_generated.getTime(),
+        date_expired: paymentToken.date_expires.getTime(),
+        token: paymentToken.qr_code
+    }
+
+    return resp;
 }

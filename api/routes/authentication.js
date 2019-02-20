@@ -7,8 +7,7 @@ var passport = require("passport");
 
 var router = express.Router();
 
-//var middleware = [checkAuth, checkApi.checkAPIKey, checkAppVersion.checkVersion];
-var middleware = [checkAuth, checkApi.checkAPIKey];
+var middleware = [checkAuth, checkApi.checkAPIKey, checkAppVersion.checkVersion];
 
 router.get("/userList", middleware, authsController.getUserList);
 router.get('/user/me', middleware, authsController.userMe);

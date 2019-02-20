@@ -11,6 +11,7 @@ var AccessToken = require("../models/access_token");
 var authController = require("../controllers/authentication.js");
 var response_msgs = require("../utils/response_msgs");
 var configs = require("../utils/configs");
+//var environment = require('dotenv').config();
 const nodemailer = require('nodemailer');
 var moment = require('moment');
 const jwt = require("jsonwebtoken");
@@ -409,7 +410,8 @@ module.exports = {
     activateUser: async (req, res, next) => {
         try{
             var usr = await user.findOneAndUpdate({isValidated: req.params.id}, {isValidated: 'true'});
-            res.send(usr);
+            res.render("welcome.ejs", {user: usr});
+            //res.send(usr);
         }
         catch(err){
             console.log(err);
@@ -533,6 +535,7 @@ module.exports = {
                     _id: usr._id,
                     username: usr.username,
                     role: usr.role,
+                    tenant_id: usr.tenantId,
                     access_token: token
                 }
                 
@@ -617,12 +620,14 @@ generateEmail = function(type, email, hash){
                 inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/forgotPassword/'+hash +'">Reset Password</a>';
                 break;
             case "activationEmail":
-                subj = "Rockwell User Activation Email";
-                inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
+                subj = "Welcome to the Rockwellist App!";
+                //inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
+                inlineHtml = '<a href="https://'+ process.env.APP_URL + '/activate/' + hash +'">Activate Your Account Now!</a>';
                 break;
             default:
-                subj = "Rockwell User Activation Email";
-                inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
+                subj = "Welcome to the Rockwellist App!";
+                //inlineHtml = '<a href='+ '"https://rockwell-mobile.herokuapp.com/activate/'+hash +'">Activate Your Account Now!</a>';
+                inlineHtml = '<a href="https://'+ process.env.APP_URL + '/activate/' + hash +'">Activate Your Account Now!</a>';
                 break;
         }
         var subject

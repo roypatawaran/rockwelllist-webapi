@@ -15,11 +15,12 @@ module.exports = {
     payment: async (req, res, next) => {
         try{
             var amount = parseFloat(req.sanitize(req.body.amount));
-            var decodedToken = jwt.verify(req.body.token, 'secret');
-            var tracking_id = decodedToken._id;
             var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
+
+            var decodedToken = jwt.verify(req.body.token, 'secret');
             var _wallet = await Wallet.findById(decodedToken.wallet);
             var _wallet_payment = await Payment.findById(decodedToken._id);
+            var tracking_id = decodedToken._id;
 
             if(amount < 0){
                 return res.status(400).send(response_msgs.error_msgs.AmoungLessThanZero);
@@ -37,11 +38,15 @@ module.exports = {
                 _wallet_payment = await Payment.findByIdAndUpdate(_wallet_payment._id, {tenant: _tenant, amount: amount, tracking_id: tracking_id, transaction_date: new Date(), status: "SUCCESSFUL"});
     
                 res.status(200).json({
-                    message: "Payment Successful."
+                    message: "Payment Successful.",
+                    tracking_id: tracking_id
                 })
             }
           }  
         catch(err){
+            if(err.name == "TokenExpiredError"){
+                return res.status(400).send(response_msgs.error_msgs.TokenExpire)
+            }
             console.log(err);
             next(err);
         }
@@ -129,8 +134,60 @@ module.exports = {
             res.status(400).send(response_msgs.error_msgs.RequestCantBeProcessed);
         }
     },
-    testRoute: async (req, res, next) => {
-        res.send(req.body.token);
+    tenantClaims: async(req, res, next) => {
+        try{
+            var summary = [];
+            var claims = await Payment.find({}).populate("tenant", "name", Tenant);
+            var tenants = removeDups(claims);
+            tenants.forEach(tenant => {
+                var total = 0;
+                claims.forEach(function(claim, i){
+                    if(typeof claim.tenant != "undefined" && claim.tenant != null){
+                        if(claim.tenant.length > 0){
+                            if(claim.tenant[0].name == tenant && claim.status == "SUCCESSFUL"){
+                                total += claim.amount;
+                            }
+                        }
+                    }
+                });
+                var _summary = {
+                    tenant: tenant,
+                    totalAmount: total
+                };
+                summary.push(_summary);
+            });
+            res.send(summary);
+        }
+        catch(err){
+            console.log(err);
+            next(err);
+        }
+    },
+    tenantClaimDetails: async(req, res, next) =>{
+        try{
+            var tenant = req.params.tenant;
+            var claims = await Payment.find({}).populate("tenant", "name", Tenant);
+            var tenantDrillDown = [];
+            var counter = 0;
+
+            claims.forEach(function(claim, i){
+                counter++;
+                if(typeof claim.tenant != "undefined" && claim.tenant != null){
+                    if(claim.tenant.length > 0){
+                        if(claim.tenant[0].name == tenant && claim.status == "SUCCESSFUL"){
+                           tenantDrillDown.push(claim);
+                        }
+                    }
+                }
+            });
+
+            console.log(counter);
+            res.send(tenantDrillDown);
+        }
+        catch(err){
+            console.log(err);
+            next(err);
+        }
     }
 }
 
@@ -152,3 +209,22 @@ async function getWalletAmount(wallet){
 
     return totalAmount;
 }
+
+function removeDups(names) {
+    try{
+        let unique = {};
+        names.forEach(function(i, index) {
+            if(typeof i.tenant != "undefined" && i.tenant != null){
+                if(i.tenant.length > 0){
+                    if(!unique[i.tenant[0].name]) {
+                        unique[i.tenant[0].name] = true;
+                    }
+                }
+            }
+        });
+        return Object.keys(unique);
+    }
+    catch(err){
+        console.log(err);
+    }
+  }
