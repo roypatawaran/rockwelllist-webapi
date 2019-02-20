@@ -16,7 +16,7 @@ module.exports = {
                 "merchantid": "00000155839729554638",
                 "merchant_ip": "127.0.0.1",
                 "request_id": request_id,
-                "notification_url": "",
+                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
                 "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
                 "disbursement_info": "sample test",
                 "disbursement_type": "0",
