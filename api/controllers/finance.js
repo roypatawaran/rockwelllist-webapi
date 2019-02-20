@@ -5,9 +5,10 @@ var crypto = require('crypto');
 var mkey = "8B56142A58367DEB7DBB630F6C8EA359";
 var request = require('request');
 var configs = require("../utils/configs");
-var app_versions = require("../models/app_version");
+var Disbursement = require("../models/disbursement");
 const nodemailer = require('nodemailer');
 var auth = require('../controllers/authentication');
+var parseString = require('xml2js').parseString;
 
 module.exports = {
     paynamics_disburse: async(req, res, next) => {
@@ -16,8 +17,8 @@ module.exports = {
                 "merchantid": "00000155839729554638",
                 "merchant_ip": "127.0.0.1",
                 "request_id": request_id,
-                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
-                "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
+                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif" + request_id,
+                "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif" + request_id,
                 "disbursement_info": "sample test",
                 "disbursement_type": "0",
                 "disbursement_date": "",
@@ -225,12 +226,12 @@ module.exports = {
         var signatureItems = setSignatureDisbursementItems(signatureHeader);
         var xml = setXML(signatureItems);
 
-        var body = await makeDisbursement(xml, res);
+        var body = await makeDisbursement(xml, request_id);
         res.send(body);
     },
     emailNotification: async (req, res, next) => {
-        console.log(req.body);
-        console.log(req.body);
+        console.log(req.params);
+        console.log(req.params.request_id);
         email = "vincent.maceda@devboxph.com";
         nodemailer.createTestAccount((err, account) => {
             var transporter = nodemailer.createTransport({
@@ -311,7 +312,7 @@ function setSignatureDisbursementItems(payload){
     return payload;
 }
 
-function makeDisbursement(payload, res){
+async function makeDisbursement(payload, request_id){
     return new Promise(function(resolve, reject){
         request({method: 'POST', 
             headers: {'content-type' : 'text/xml'},
@@ -319,6 +320,13 @@ function makeDisbursement(payload, res){
             body: payload}, function(error, resp, body){
                 if(resp.statusCode == 200){
                     console.log('success');
+                    var disbursement = new Disbursement({
+                        xml: payload,
+                        status: "PENDING",
+                        request_id: request_id,
+                        transaction_date: new Date()
+                    });
+                    Disbursement.create(disbursement);
                     resolve(body);
                   } else {
                     console.log('error: '+ resp.statusCode)
