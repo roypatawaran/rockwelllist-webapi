@@ -16,7 +16,7 @@ module.exports = {
                 "merchantid": "00000155839729554638",
                 "merchant_ip": "127.0.0.1",
                 "request_id": request_id,
-                "notification_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
+                "notification_url": "",
                 "response_url": "https://rockwell-mobile.herokuapp.com/v1/finance/emailNotif",
                 "disbursement_info": "sample test",
                 "disbursement_type": "0",
@@ -229,8 +229,8 @@ module.exports = {
         res.send(body);
     },
     emailNotification: async (req, res, next) => {
-        console.log(JSON.stringify(req.body));
-        console.log(req.body.toString());
+        console.log(req.body);
+        console.log(req.body);
         email = "vincent.maceda@devboxph.com";
         nodemailer.createTestAccount((err, account) => {
             var transporter = nodemailer.createTransport({
@@ -319,7 +319,6 @@ function makeDisbursement(payload, res){
             body: payload}, function(error, resp, body){
                 if(resp.statusCode == 200){
                     console.log('success');
-                    generateEmail();
                     resolve(body);
                   } else {
                     console.log('error: '+ resp.statusCode)
