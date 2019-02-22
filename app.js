@@ -24,6 +24,7 @@ var walletRoutes = require('./api/routes/wallet');
 var egcRoutes = require('./api/routes/coupon');
 var paymentRoutes = require('./api/routes/payment');
 var financeRoutes = require('./api/routes/finance');
+var inAppRoutes = require('./api/routes/inapppurchase');
 
 //Passport declarations
 app.use(require("express-session")({
@@ -169,6 +170,7 @@ app.use((req, res, next) => {
   app.use("/v1/finance", financeRoutes);
   app.use(authRoutes);
   app.use('/user', userRoutes);
+  app.use('/v1/apppurchase', inAppRoutes);
   
   app.use((req, res, next) => {
     const error = new Error("No routes found.");

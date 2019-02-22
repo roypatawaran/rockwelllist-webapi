@@ -12,7 +12,11 @@ const walletClaimsSchema = new mongoose.Schema({
     }],
     amount: Number,
     transaction_date: Date,
-    status: String
+    status: String,
+    apppurchase: [{
+        type: Schema.Types.ObjectId,
+        ref: 'in-app'
+    }]
 });
 
 module.exports = mongoose.model('wallet_claims', walletClaimsSchema);
