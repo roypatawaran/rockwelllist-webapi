@@ -17,10 +17,17 @@ module.exports = {
             var amount = parseFloat(req.sanitize(req.body.amount));
             var _tenant = await Tenant.findById(req.sanitize(req.body.tenant_id));
 
-            var decodedToken = jwt.verify(req.body.token, 'secret');
-            var _wallet = await Wallet.findById(decodedToken.wallet);
-            var _wallet_payment = await Payment.findById(decodedToken._id);
-            var tracking_id = decodedToken._id;
+            var user = await getUser(req.headers.authorization);
+            var _wallet = await Wallet.findOne({user: user._id});
+            var payment = new Payment({
+                amount: amount,
+                tenant: _tenant,
+                wallet: _wallet
+            });
+            // var _wallet = await Wallet.findById(decodedToken.wallet);
+            var _wallet_payment = await Payment.create(payment);
+            var datetime = "1656-";
+             var tracking_id = datetime + _wallet_payment._id;
 
             if(amount < 0){
                 return res.status(400).send(response_msgs.error_msgs.AmoungLessThanZero);
@@ -39,7 +46,10 @@ module.exports = {
     
                 res.status(200).json({
                     message: "Payment Successful.",
-                    tracking_id: tracking_id
+                    tracking_id: tracking_id,
+                    tenant_id: _tenant.id,
+                    tenant_name: _tenant.name,
+                    amount: amount
                 })
             }
           }  
@@ -227,4 +237,11 @@ function removeDups(names) {
     catch(err){
         console.log(err);
     }
+  }
+
+  async function getUser (request) {
+    var token = jwt.verify(request.replace("Bearer ", ""), "secret");
+    var _user = await User.findById(token.data._id);
+
+    return _user;
   }
